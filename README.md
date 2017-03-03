@@ -12,7 +12,7 @@ First, install [glide][2], vendor package management.
 
 ## License
 
-All code is licensed under the [MPLv2 License][1].
+Backend component is licensed under the [MPLv2 License][1].
 
 [1]: https://github.com/filemaps/filemaps-backend/blob/master/LICENSE
 [2]: https://github.com/Masterminds/glide
