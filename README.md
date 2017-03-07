@@ -1,6 +1,6 @@
 # File Maps Backend
 
-[![Build Status](https://travis-ci.org/filemaps/filemaps-backend.svg?branch=master)](https://travis-ci.org/filemap/filemap-backend)
+[![Build Status](https://travis-ci.org/filemaps/filemaps-backend.svg?branch=master)](https://travis-ci.org/filemaps/filemaps-backend)
 [![MPLv2 License](https://img.shields.io/badge/license-MPLv2-blue.svg?style=flat-square)](https://www.mozilla.org/MPL/2.0/)
 
 ## Building
