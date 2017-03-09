@@ -13,19 +13,20 @@ import (
 
 // FileMap is a database struct for FileMap.
 type FileMap struct {
-	ID     int64
-	Name   string
-	Path   string
-	File   string
-	Opened time.Time
+	ID     int       `json:"id"`
+	Title  string    `json:"title"`
+	Base   string    `json:"base"`
+	File   string    `json:"file"`
+	Opened time.Time `json:"opened"`
 }
 
 // CreateTableFileMaps creates filemaps table if it does not exist.
 func (db *Database) CreateTableFileMaps() error {
+	// sqlite creates rowid column automatically
 	sqlStmt := `
 	CREATE TABLE IF NOT EXISTS filemaps (
-		name text,
-		path text,
+		title text,
+		base text,
 		file text,
 		opened integer
 	)
@@ -37,17 +38,19 @@ func (db *Database) CreateTableFileMaps() error {
 // AddFileMap inserts new FileMap to database and updates
 // FileMap.ID with new ID.
 func (db *Database) AddFileMap(fm *FileMap) error {
-	stmt, err := db.h.Prepare("INSERT INTO filemaps (name, path, file, opened) VALUES (?, ?, ?, ?)")
+	stmt, err := db.h.Prepare("INSERT INTO filemaps (title, base, file, opened) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
 
-	rslt, err := stmt.Exec(fm.Name, fm.Path, fm.File, fm.Opened.Unix())
+	rslt, err := stmt.Exec(fm.Title, fm.Base, fm.File, fm.Opened.Unix())
 	if err != nil {
 		return err
 	}
 
-	fm.ID, err = rslt.LastInsertId()
+	id, err := rslt.LastInsertId()
+	fm.ID = int(id)
+
 	return err
 }
 
@@ -55,7 +58,7 @@ func (db *Database) AddFileMap(fm *FileMap) error {
 // last opened first. If limit is < 1, returns all rows.
 func (db *Database) GetFileMaps(limit int) ([]FileMap, error) {
 	var fileMaps []FileMap
-	stmt := "SELECT rowid, name, path, file, opened FROM filemaps ORDER BY opened DESC"
+	stmt := "SELECT rowid, title, base, file, opened FROM filemaps ORDER BY opened DESC"
 	if limit > 0 {
 		stmt += fmt.Sprintf(" LIMIT %d", limit)
 	}
@@ -67,8 +70,10 @@ func (db *Database) GetFileMaps(limit int) ([]FileMap, error) {
 
 	for rows.Next() {
 		fm := FileMap{}
+		var id int64
 		var opened int64
-		err = rows.Scan(&fm.ID, &fm.Name, &fm.Path, &fm.File, &opened)
+		err = rows.Scan(&id, &fm.Title, &fm.Base, &fm.File, &opened)
+		fm.ID = int(id)
 		fm.Opened = time.Unix(opened, 0)
 		if err != nil {
 			return fileMaps, err
@@ -80,34 +85,36 @@ func (db *Database) GetFileMaps(limit int) ([]FileMap, error) {
 }
 
 // GetFileMap returns a FileMap row by given ID.
-func (db *Database) GetFileMap(ID int64) (FileMap, error) {
+func (db *Database) GetFileMap(ID int) (FileMap, error) {
 	fm := FileMap{}
-	stmt, err := db.h.Prepare("SELECT rowid, name, path, file, opened FROM filemaps WHERE rowid = ?")
+	stmt, err := db.h.Prepare("SELECT rowid, title, base, file, opened FROM filemaps WHERE rowid = ?")
 	if err != nil {
 		return fm, err
 	}
 	defer stmt.Close()
 
+	var i64 int64
 	var opened int64
-	err = stmt.QueryRow(ID).Scan(&fm.ID, &fm.Name, &fm.Path, &fm.File, &opened)
+	err = stmt.QueryRow(ID).Scan(&i64, &fm.Title, &fm.Base, &fm.File, &opened)
+	fm.ID = int(i64)
 	fm.Opened = time.Unix(opened, 0)
 	return fm, err
 }
 
 // UpdateFileMap updates given FileMap row in database.
 func (db *Database) UpdateFileMap(fm FileMap) error {
-	stmt, err := db.h.Prepare("UPDATE filemaps SET name = ?, path = ?, file = ?, opened = ? WHERE rowid = ?")
+	stmt, err := db.h.Prepare("UPDATE filemaps SET title = ?, base = ?, file = ?, opened = ? WHERE rowid = ?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(fm.Name, fm.Path, fm.File, fm.Opened.Unix(), fm.ID)
+	_, err = stmt.Exec(fm.Title, fm.Base, fm.File, fm.Opened.Unix(), fm.ID)
 	return err
 }
 
 // DeleteFileMap deletes FileMap row by given ID.
-func (db *Database) DeleteFileMap(ID int64) error {
+func (db *Database) DeleteFileMap(ID int) error {
 	stmt := fmt.Sprintf("DELETE FROM filemaps WHERE rowid = %d", ID)
 	_, err := db.h.Exec(stmt)
 	return err
