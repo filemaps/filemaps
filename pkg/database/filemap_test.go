@@ -29,8 +29,8 @@ func TestFileMap(t *testing.T) {
 
 	// add FileMap
 	fm := FileMap{
-		Name:   "test1",
-		Path:   "/tmp",
+		Title:  "test1",
+		Base:   "/tmp",
 		File:   "project.filemap",
 		Opened: time.Now(),
 	}
@@ -40,9 +40,9 @@ func TestFileMap(t *testing.T) {
 	}
 
 	// update FileMap
-	newName := "test2"
-	fm.Name = newName
-	fm.Path = "/tmp2"
+	newTitle := "test2"
+	fm.Title = newTitle
+	fm.Base = "/tmp2"
 	now := time.Now()
 	fm.Opened = now
 	if err := db.UpdateFileMap(fm); err != nil {
@@ -67,8 +67,8 @@ func TestFileMap(t *testing.T) {
 		t.Error("Error in GetFileMap", err)
 		return
 	}
-	if fileMap.Name != newName {
-		t.Error("name expected", newName, "got", fileMap.Name)
+	if fileMap.Title != newTitle {
+		t.Error("name expected", newTitle, "got", fileMap.Title)
 	}
 
 	// delete FileMap
