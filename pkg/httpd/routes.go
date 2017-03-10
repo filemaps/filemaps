@@ -24,9 +24,11 @@ func route(r *httprouter.Router) {
 	r.GET("/", Index)
 	r.GET("/hello/:name", Hello)
 
+	// map api
 	r.GET(APIURL+MapsURL, GetMaps)
 	r.POST(APIURL+MapsURL, CreateMap)
 	r.GET(APIURL+MapsURL+"/:mapid", GetMap)
+	r.DELETE(APIURL+MapsURL+"/:mapid", DeleteMap)
 
 	r.ServeFiles("/gl/*filepath", http.Dir("filemaps-webui/build"))
 }

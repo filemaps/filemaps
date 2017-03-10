@@ -8,6 +8,7 @@ package httpd
 
 import (
 	"encoding/json"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
@@ -68,6 +69,26 @@ func GetMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 	writeMap(w, id)
+}
+
+// DeleteMap is controller for deleting a map.
+func DeleteMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	id, err := strconv.Atoi(ps.ByName("mapid"))
+	if err != nil {
+		WriteJSONError(w, 400, "map id must be integer")
+		return
+	}
+
+	mm := model.GetMapManager()
+	if err := mm.DeleteMap(id); err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+			"id":  id,
+		}).Error("Could not remove map")
+		WriteJSONError(w, 500, "could not remove map")
+		return
+	}
+	fmt.Fprint(w, "{}")
 }
 
 func writeMap(w http.ResponseWriter, id int) {
