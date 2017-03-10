@@ -19,10 +19,15 @@ import (
 	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
+const (
+	// APIURL is prefix for REST API URL.
+	APIURL = "/api"
+)
+
 func routeMaps(r *httprouter.Router) {
-	mapsURL := APIURL + MapsURL
-	r.GET(APIURL+MapsURL, GetMaps)
-	r.POST(APIURL+MapsURL, CreateMap)
+	mapsURL := APIURL + "/maps"
+	r.GET(mapsURL, GetMaps)
+	r.POST(mapsURL, CreateMap)
 
 	mapURL := mapsURL + "/:mapid"
 	r.GET(mapURL, ReadMap)

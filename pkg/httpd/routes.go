@@ -13,13 +13,6 @@ import (
 	"net/http"
 )
 
-const (
-	// APIURL is prefix for REST API URL.
-	APIURL = "/api"
-	// MapsURL is path component for maps REST API.
-	MapsURL = "/maps"
-)
-
 func route(r *httprouter.Router) {
 	r.GET("/", Index)
 	r.GET("/hello/:name", Hello)
