@@ -41,8 +41,6 @@ func (p *ProxyMap) Write() error {
 }
 
 func (p *ProxyMap) writeFile(path string) error {
-	// copy title to MapFileData
-	p.Map.MapFileData.Title2 = p.Map.Title
 	data, err := json.Marshal(p.Map.MapFileData)
 	if err != nil {
 		return err

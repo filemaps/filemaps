@@ -10,6 +10,10 @@ import (
 	db "github.com/filemaps/filemaps-backend/pkg/database"
 )
 
+const (
+	currentMapFileDataVersion = 1
+)
+
 // MapFileDataV1 is version 1 from MapFileData struct.
 type MapFileDataV1 struct {
 	Version int `json:"version"`
@@ -33,6 +37,8 @@ func NewMap(fm *db.FileMap) *Map {
 	m := &Map{
 		FileMap: fm,
 		MapFileData: MapFileData{
+			Version:   currentMapFileDataVersion,
+			Title2:    fm.Title,
 			Resources: make(map[int]*Resource),
 		},
 	}

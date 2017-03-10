@@ -19,6 +19,17 @@ import (
 	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
+func routeMaps(r *httprouter.Router) {
+	mapsURL := APIURL + MapsURL
+	r.GET(APIURL+MapsURL, GetMaps)
+	r.POST(APIURL+MapsURL, CreateMap)
+
+	mapURL := mapsURL + "/:mapid"
+	r.GET(mapURL, ReadMap)
+	r.PUT(mapURL, UpdateMap)
+	r.DELETE(mapURL, DeleteMap)
+}
+
 // GetMaps is controller for getting maps.
 // Returns all maps, sorted by Opened field.
 func GetMaps(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -61,13 +72,54 @@ func CreateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	writeMap(w, fm.ID)
 }
 
-// GetMap is controller for getting a map.
-func GetMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ReadMap is controller for getting a map.
+func ReadMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id, err := strconv.Atoi(ps.ByName("mapid"))
 	if err != nil {
 		WriteJSONError(w, 400, "map id must be integer")
 		return
 	}
+	writeMap(w, id)
+}
+
+// UpdateMap updates existing Map.
+func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	id, err := strconv.Atoi(ps.ByName("mapid"))
+	if err != nil {
+		WriteJSONError(w, 400, "map id must be integer")
+		return
+	}
+
+	type JSONRequest struct {
+		Title string `json:"title"`
+		Base  string `json:"base"`
+		File  string `json:"file"`
+	}
+	var jr JSONRequest
+	d := json.NewDecoder(r.Body)
+	err = d.Decode(&jr)
+	r.Body.Close()
+	if err != nil {
+		WriteJSONError(w, 400, "bad request")
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"title": jr.Title,
+		"base":  jr.Base,
+		"file":  jr.File,
+	}).Info("Update Map")
+
+	mm := model.GetMapManager()
+	pm := mm.Maps[id]
+	if pm == nil {
+		WriteJSONError(w, 404, "map not found")
+	}
+	pm.SetTitle(jr.Title)
+	pm.SetBase(jr.Base)
+	pm.SetFile(jr.File)
+	pm.Write()
+
 	writeMap(w, id)
 }
 

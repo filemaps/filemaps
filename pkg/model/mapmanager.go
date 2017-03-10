@@ -73,6 +73,7 @@ func (mm *MapManager) AddMap(fm *database.FileMap) error {
 
 	pm := NewProxyMap(fm)
 	mm.Maps[pm.ID] = pm
+	pm.Write()
 	return nil
 }
 
