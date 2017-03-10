@@ -49,6 +49,14 @@ func (mm *MapManager) GetMaps() database.FileMaps {
 	return maps
 }
 
+func (mm *MapManager) GetMap(id int) *Map {
+	m := mm.Maps[id]
+	if m != nil {
+		m.Read()
+	}
+	return m.Map
+}
+
 // AddMap adds new Map and assigns new ID for it.
 func (mm *MapManager) AddMap(fm *database.FileMap) error {
 	// add entry to db and get id
