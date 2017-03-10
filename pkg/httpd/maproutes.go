@@ -7,10 +7,14 @@
 package httpd
 
 import (
+	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/filemaps/filemaps-backend/pkg/database"
 	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
@@ -23,6 +27,39 @@ func GetMaps(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	WriteJSON(w, resp)
 }
 
+// CreateMap creates new Map.
+func CreateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	type JSONRequest struct {
+		Title string `json:"title"`
+		Base  string `json:"base"`
+		File  string `json:"file"`
+	}
+	var jr JSONRequest
+	d := json.NewDecoder(r.Body)
+	err := d.Decode(&jr)
+	r.Body.Close()
+	if err != nil {
+		WriteJSONError(w, 400, "bad request")
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"title": jr.Title,
+		"base":  jr.Base,
+		"file":  jr.File,
+	}).Info("Create Map")
+
+	fm := database.FileMap{
+		Title:  jr.Title,
+		Base:   jr.Base,
+		File:   jr.File,
+		Opened: time.Now(),
+	}
+	mm := model.GetMapManager()
+	mm.AddMap(&fm)
+	writeMap(w, fm.ID)
+}
+
 // GetMap is controller for getting a map.
 func GetMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id, err := strconv.Atoi(ps.ByName("mapid"))
@@ -30,7 +67,10 @@ func GetMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		WriteJSONError(w, 400, "map id must be integer")
 		return
 	}
+	writeMap(w, id)
+}
 
+func writeMap(w http.ResponseWriter, id int) {
 	mm := model.GetMapManager()
 	m := mm.GetMap(id)
 	if m != nil {

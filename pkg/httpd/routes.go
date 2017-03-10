@@ -25,6 +25,7 @@ func route(r *httprouter.Router) {
 	r.GET("/hello/:name", Hello)
 
 	r.GET(APIURL+MapsURL, GetMaps)
+	r.POST(APIURL+MapsURL, CreateMap)
 	r.GET(APIURL+MapsURL+"/:mapid", GetMap)
 
 	r.ServeFiles("/gl/*filepath", http.Dir("filemaps-webui/build"))
