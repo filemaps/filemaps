@@ -53,8 +53,9 @@ func (mm *MapManager) GetMap(id int) *Map {
 	m := mm.Maps[id]
 	if m != nil {
 		m.Read()
+		return m.Map
 	}
-	return m.Map
+	return nil
 }
 
 // AddMap adds new Map and assigns new ID for it.

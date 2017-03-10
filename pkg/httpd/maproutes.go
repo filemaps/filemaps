@@ -33,5 +33,9 @@ func GetMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	mm := model.GetMapManager()
 	m := mm.GetMap(id)
-	WriteJSON(w, m)
+	if m != nil {
+		WriteJSON(w, m)
+	} else {
+		WriteJSONError(w, 404, "map not found")
+	}
 }
