@@ -9,6 +9,7 @@ package model
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/filemaps/filemaps-backend/pkg/database"
+	"sort"
 )
 
 var (
@@ -36,6 +37,16 @@ func GetMapManager() *MapManager {
 		log.Panic("MapManager instance not created, has model.CreateMapManager() been called?")
 	}
 	return instance
+}
+
+// GetMaps returns database.FileMaps.
+func (mm *MapManager) GetMaps() database.FileMaps {
+	var maps database.FileMaps
+	for _, pm := range mm.Maps {
+		maps = append(maps, pm.Map.FileMap)
+	}
+	sort.Sort(maps)
+	return maps
 }
 
 // AddMap adds new Map and assigns new ID for it.

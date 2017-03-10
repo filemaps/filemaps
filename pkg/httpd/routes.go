@@ -11,11 +11,14 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+
+	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
 func route(r *httprouter.Router) {
 	r.GET("/", Index)
 	r.GET("/hello/:name", Hello)
+	r.GET("/api/maps", GetMaps)
 	r.ServeFiles("/gl/*filepath", http.Dir("filemaps-webui/build"))
 }
 
@@ -29,4 +32,14 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	log.Info("hello request")
 	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
+}
+
+// GetMaps is controller for /api/maps.
+// Returns all maps, sorted by Opened field.
+func GetMaps(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	mm := model.GetMapManager()
+
+	resp := make(map[string]interface{})
+	resp["maps"] = mm.GetMaps()
+	WriteJSON(w, resp)
 }

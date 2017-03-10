@@ -8,40 +8,43 @@ package config
 
 import (
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/filemaps/filemaps-backend/pkg/filemaps"
 )
 
 const (
-	// CurrentVersion defines version of this software
-	CurrentVersion = 1
 	// CfgFileName defines config file name
 	CfgFileName = "config.json"
 )
 
 // Configuration struct
 type Configuration struct {
-	Version int
+	Version string
 }
 
 // New returns new Configuration
 func New() Configuration {
 	var cfg Configuration
-	cfg.Version = CurrentVersion
+	cfg.Version = filemaps.Version
 	return cfg
 }
 
-// GetOrCreate parses config file and returns Configuration
-func GetOrCreate() (Configuration, error) {
-	path := getPath()
+// Read parses config file and returns Configuration,
+// if file not found, returns a new Configuration
+func Read() (Configuration, error) {
+	return readFile(getPath())
+}
+
+func readFile(path string) (Configuration, error) {
 	fd, err := os.Open(path)
 	if err != nil && os.IsNotExist(err) {
-		log.Info("Config does not exist, creating new")
+		log.Info(path + " does not exist, creating new")
 		cfg := New()
 		// write new config to disk
 		err = Write(cfg)
@@ -72,19 +75,22 @@ func ParseJSON(r io.Reader) (Configuration, error) {
 
 // Write writes given Configuration to config file
 func Write(cfg Configuration) error {
+	return writeFile(cfg, getPath())
+}
+
+func writeFile(cfg Configuration, path string) error {
 	data, err := json.Marshal(cfg)
 
 	// make sure cfg dir exists
-	os.MkdirAll(GetDir(), 0700)
+	os.MkdirAll(filepath.Dir(path), 0700)
 
-	path := getPath()
 	err = ioutil.WriteFile(path, data, 0600)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"path": path,
 		}).Error(err)
 	} else {
-		log.Info("Config written to " + path)
+		log.Info("config written to " + path)
 	}
 	return err
 }

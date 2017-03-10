@@ -10,7 +10,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/filemaps/filemaps-backend/pkg/config"
+	"github.com/filemaps/filemaps-backend/pkg/database"
 	"github.com/filemaps/filemaps-backend/pkg/httpd"
+	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
 func init() {
@@ -23,9 +25,22 @@ func init() {
 
 func main() {
 	log.Info("File Maps starting")
-	cfg, _ := config.GetOrCreate()
-	cfg.Version += 1
+
+	// initialize database
+	db := database.NewDB()
+	db.Open()
+	db.Init()
+	db.Close()
+
+	// create singleton instance from MapManager
+	_, err := model.CreateMapManager()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg, _ := config.Read()
 	config.Write(cfg)
-	addr := ":8080"
+
+	addr := ":8338"
 	httpd.RunHTTP(addr)
 }

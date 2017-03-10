@@ -11,7 +11,7 @@ import (
 )
 
 func TestReadWrite(t *testing.T) {
-	cfg, err := GetOrCreate()
+	cfg, err := readFile(getTestPath())
 	if err != nil {
 		t.Error("Error in GetOrCreate", err)
 	} else {
@@ -20,4 +20,8 @@ func TestReadWrite(t *testing.T) {
 			t.Error("Error in write", err)
 		}
 	}
+}
+
+func getTestPath() string {
+	return "/tmp/filemaps.config"
 }

@@ -41,6 +41,8 @@ func (p *ProxyMap) Write() error {
 }
 
 func (p *ProxyMap) writeFile(path string) error {
+	// copy title to MapFileData
+	p.Map.MapFileData.Title2 = p.Map.Title
 	data, err := json.Marshal(p.Map.MapFileData)
 	if err != nil {
 		return err
@@ -51,8 +53,16 @@ func (p *ProxyMap) writeFile(path string) error {
 
 // Read decodes JSON data from file to Map.MapFileData.
 func (p *ProxyMap) Read() error {
+	if p.IsRead == true {
+		// MapFileData already read
+		return nil
+	}
 	path := p.getFilePath()
-	return p.readFile(path)
+	err := p.readFile(path)
+	if err != nil {
+		p.IsRead = true
+	}
+	return err
 }
 
 func (p *ProxyMap) readFile(path string) error {
@@ -111,6 +121,7 @@ func (p *ProxyMap) SetFile(file string) {
 
 // AddResource adds new resource to map and assigns ID for it.
 func (p *ProxyMap) AddResource(r *Resource) {
+	p.Read()
 	id := p.getNewResourceID()
 	p.Resources[id] = r
 	p.Changed = true
@@ -118,6 +129,7 @@ func (p *ProxyMap) AddResource(r *Resource) {
 
 // DeleteResource deletes resource from map.
 func (p *ProxyMap) DeleteResource(resourceID int) {
+	p.Read()
 	delete(p.Resources, resourceID)
 	p.Changed = true
 }
