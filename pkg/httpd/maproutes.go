@@ -19,25 +19,22 @@ import (
 	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
-const (
-	// APIURL is prefix for REST API URL.
-	APIURL = "/api"
-)
-
 func routeMaps(r *httprouter.Router) {
 	mapsURL := APIURL + "/maps"
-	r.GET(mapsURL, GetMaps)
+	r.GET(mapsURL, ReadMaps)
 	r.POST(mapsURL, CreateMap)
 
 	mapURL := mapsURL + "/:mapid"
 	r.GET(mapURL, ReadMap)
 	r.PUT(mapURL, UpdateMap)
 	r.DELETE(mapURL, DeleteMap)
+
+	routeResources(r, mapURL)
 }
 
-// GetMaps is controller for getting maps.
+// ReadMaps is controller for getting maps.
 // Returns all maps, sorted by Opened field.
-func GetMaps(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func ReadMaps(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	mm := model.GetMapManager()
 	resp := make(map[string]interface{})
 	resp["maps"] = mm.GetMaps()
@@ -45,7 +42,7 @@ func GetMaps(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 // CreateMap creates new Map.
-func CreateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	type JSONRequest struct {
 		Title string `json:"title"`
 		Base  string `json:"base"`
@@ -89,12 +86,6 @@ func ReadMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 // UpdateMap updates existing Map.
 func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id, err := strconv.Atoi(ps.ByName("mapid"))
-	if err != nil {
-		WriteJSONError(w, 400, "map id must be integer")
-		return
-	}
-
 	type JSONRequest struct {
 		Title string `json:"title"`
 		Base  string `json:"base"`
@@ -102,7 +93,7 @@ func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 	var jr JSONRequest
 	d := json.NewDecoder(r.Body)
-	err = d.Decode(&jr)
+	err := d.Decode(&jr)
 	r.Body.Close()
 	if err != nil {
 		WriteJSONError(w, 400, "bad request")
@@ -115,24 +106,25 @@ func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		"file":  jr.File,
 	}).Info("Update Map")
 
-	mm := model.GetMapManager()
-	pm := mm.Maps[id]
+	pm := findProxyMap(ps.ByName("mapid"))
 	if pm == nil {
 		WriteJSONError(w, 404, "map not found")
+		return
 	}
+
 	pm.SetTitle(jr.Title)
 	pm.SetBase(jr.Base)
 	pm.SetFile(jr.File)
 	pm.Write()
 
-	writeMap(w, id)
+	writeMap(w, pm.ID)
 }
 
 // DeleteMap is controller for deleting a map.
 func DeleteMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id, err := strconv.Atoi(ps.ByName("mapid"))
 	if err != nil {
-		WriteJSONError(w, 400, "map id must be integer")
+		WriteJSONError(w, 404, "map not found")
 		return
 	}
 
@@ -148,6 +140,23 @@ func DeleteMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprint(w, "{}")
 }
 
+// findMap returns ProxyMap by ID or nil if not found.
+func findProxyMap(param string) *model.ProxyMap {
+	mapID, err := strconv.Atoi(param)
+	if err != nil {
+		return nil
+	}
+
+	mm := model.GetMapManager()
+	pm := mm.Maps[mapID]
+	if pm == nil {
+		return nil
+	}
+
+	return pm
+}
+
+// writeMap writes Map to JSON response.
 func writeMap(w http.ResponseWriter, id int) {
 	mm := model.GetMapManager()
 	m := mm.GetMap(id)

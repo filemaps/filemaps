@@ -13,6 +13,11 @@ import (
 	"net/http"
 )
 
+const (
+	// APIURL is prefix for REST API URL.
+	APIURL = "/api"
+)
+
 func route(r *httprouter.Router) {
 	r.GET("/", Index)
 	r.GET("/hello/:name", Hello)

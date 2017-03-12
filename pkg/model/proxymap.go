@@ -118,11 +118,13 @@ func (p *ProxyMap) SetFile(file string) {
 }
 
 // AddResource adds new resource to map and assigns ID for it.
-func (p *ProxyMap) AddResource(r *Resource) {
+// Returns new ID.
+func (p *ProxyMap) AddResource(r *Resource) int {
 	p.Read()
 	id := p.getNewResourceID()
 	p.Resources[id] = r
 	p.Changed = true
+	return id
 }
 
 // DeleteResource deletes resource from map.
