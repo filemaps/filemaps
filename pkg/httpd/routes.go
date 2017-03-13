@@ -23,6 +23,7 @@ func route(r *httprouter.Router) {
 	r.GET("/hello/:name", Hello)
 	r.ServeFiles("/gl/*filepath", http.Dir("filemaps-webui/build"))
 	routeMaps(r)
+	routeBrowse(r)
 }
 
 // Index is controller for root URL
