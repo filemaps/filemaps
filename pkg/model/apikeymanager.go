@@ -53,6 +53,11 @@ func (m *APIKeyManager) GetAPIKey(apiKey string) *database.APIKey {
 	return m.APIKeys[apiKey]
 }
 
+// IsValidAPIKey returns true if given API key is valid.
+func (m *APIKeyManager) IsValidAPIKey(apiKey string) bool {
+	return m.GetAPIKey(apiKey) != nil
+}
+
 // CreateAPIKey generates new API key.
 func (m *APIKeyManager) CreateAPIKey() (string, error) {
 	// add entry to db

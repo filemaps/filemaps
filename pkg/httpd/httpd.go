@@ -11,17 +11,21 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"strings"
+
+	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
 // RunHTTP starts HTTP server
 func RunHTTP(addr string) {
 	router := httprouter.New()
 	route(router)
+	handler := authMiddleware(router)
 	log.WithFields(log.Fields{
 		"transport": "HTTP",
 		"addr":      addr,
 	}).Info("Starting server")
-	log.Fatal(http.ListenAndServe(addr, router))
+	log.Fatal(http.ListenAndServe(addr, handler))
 }
 
 // WriteJSON writes JSON response
@@ -42,4 +46,31 @@ func WriteJSONError(w http.ResponseWriter, code int, err string) {
 	WriteJSON(w, map[string]string{
 		"error": err,
 	})
+}
+
+// authMiddleware authenticates the request.
+func authMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		model.GetAPIKeyManager()
+		ip := strings.Split(r.RemoteAddr, ":")
+		if addrIsTrusted(ip[0]) {
+			handler.ServeHTTP(w, r)
+			return
+		}
+
+		if model.GetAPIKeyManager().IsValidAPIKey(r.Header.Get("X-API-Key")) {
+			handler.ServeHTTP(w, r)
+			return
+		}
+
+		log.WithFields(log.Fields{
+			"requestURI": r.RequestURI,
+			"remoteAddr": r.RemoteAddr,
+		}).Error("Access denied")
+		w.WriteHeader(403)
+	})
+}
+
+func addrIsTrusted(addr string) bool {
+	return addr == "127.0.0.1"
 }
