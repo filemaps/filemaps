@@ -129,7 +129,7 @@ func generateAPIKey() database.APIKey {
 	return k
 }
 
-// randStringBytes generates a random string with given length.
+// randString generates a random string with given length.
 func randString(n int) string {
 	b := make([]byte, n)
 	for i := range b {

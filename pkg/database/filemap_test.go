@@ -20,7 +20,7 @@ func TestFileMap(t *testing.T) {
 		return
 	}
 	defer db.Close()
-	if err := db.Init(); err != nil {
+	if err := db.init(); err != nil {
 		t.Error("Error in Init", err)
 		return
 	}

@@ -71,7 +71,7 @@ func (db *Database) GetAPIKeys(limit int) ([]APIKey, error) {
 	return keys, err
 }
 
-// GetAPIKey return API key database row.
+// GetAPIKey returns API key database row.
 func (db *Database) GetAPIKey(apiKey string) (APIKey, error) {
 	k := APIKey{}
 	stmt, err := db.h.Prepare("SELECT apikey, expires FROM filemaps WHERE apikey = ?")
