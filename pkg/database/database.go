@@ -25,6 +25,18 @@ func NewDB() Database {
 	return Database{}
 }
 
+func InitDatabase() error {
+	db := NewDB()
+	if err := db.Open(); err != nil {
+		return err
+	}
+	defer db.Close()
+	if err := db.init(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Open opens database connection.
 // Remember to call Close().
 func (db *Database) Open() error {
@@ -43,11 +55,14 @@ func (db *Database) openFile(path string) error {
 }
 
 // Init makes sure database is up-to-date.
-func (db *Database) Init() error {
+func (db *Database) init() error {
 	if err := db.CreateTableFileMaps(); err != nil {
 		return err
 	}
 	if err := db.CreateTableMigrations(); err != nil {
+		return err
+	}
+	if err := db.CreateTableAPIKeys(); err != nil {
 		return err
 	}
 	if err := db.RunMigrations(); err != nil {

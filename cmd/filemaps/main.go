@@ -27,13 +27,15 @@ func main() {
 	log.Info("File Maps starting")
 
 	// initialize database
-	db := database.NewDB()
-	db.Open()
-	db.Init()
-	db.Close()
+	err := database.InitDatabase()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Fatal("Database initialization error")
+	}
 
 	// create singleton instance from MapManager
-	_, err := model.CreateMapManager()
+	_, err = model.CreateMapManager()
 	if err != nil {
 		log.Fatal(err)
 	}
