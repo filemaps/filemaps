@@ -8,14 +8,8 @@ package model
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"math/rand"
-	"time"
 
 	"github.com/filemaps/filemaps-backend/pkg/database"
-)
-
-const (
-	keyBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 var (
@@ -68,7 +62,7 @@ func (m *APIKeyManager) CreateAPIKey() (string, error) {
 	}
 	defer db.Close()
 
-	k := generateAPIKey()
+	k := database.NewAPIKey()
 	if err := db.AddAPIKey(&k); err != nil {
 		return k.APIKey, err
 	}
@@ -116,24 +110,4 @@ func (m *APIKeyManager) readDB() error {
 		}).Info("APIKey")
 	}
 	return nil
-}
-
-// generateAPIKey returns new APIKey with random API key and
-// expiry date is one year from now.
-func generateAPIKey() database.APIKey {
-	expires := time.Now().AddDate(1, 0, 0)
-	k := database.APIKey{
-		APIKey:  randString(32),
-		Expires: expires,
-	}
-	return k
-}
-
-// randString generates a random string with given length.
-func randString(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = keyBytes[rand.Intn(len(keyBytes))]
-	}
-	return string(b)
 }

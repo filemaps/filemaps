@@ -8,13 +8,26 @@ package database
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
+)
+
+const (
+	keyBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 // APIKey is a database struct for APIKey.
 type APIKey struct {
 	APIKey  string    `json:"apikey"`
 	Expires time.Time `json:"expires"`
+}
+
+// NewAPIKey returns new APIKey with random API key for a year.
+func NewAPIKey() APIKey {
+	return APIKey{
+		APIKey:  randString(32),
+		Expires: time.Now().AddDate(1, 0, 0),
+	}
 }
 
 // CreateTableAPIKeys creates database table for API keys if it does not exist.
@@ -115,4 +128,13 @@ func (db *Database) DeleteExpiredAPIKeys() error {
 	stmt := fmt.Sprintf("DELETE FROM apikeys WHERE expires < %d", time.Now().Unix())
 	_, err := db.h.Exec(stmt)
 	return err
+}
+
+// randString generates a random string with given length.
+func randString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = keyBytes[rand.Intn(len(keyBytes))]
+	}
+	return string(b)
 }
