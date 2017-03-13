@@ -8,6 +8,8 @@ package main
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"math/rand"
+	"time"
 
 	"github.com/filemaps/filemaps-backend/pkg/config"
 	"github.com/filemaps/filemaps-backend/pkg/database"
@@ -16,6 +18,8 @@ import (
 )
 
 func init() {
+	rand.Seed(time.Now().UnixNano())
+
 	// show only clock time in log output
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
@@ -36,6 +40,12 @@ func main() {
 
 	// create singleton instance from MapManager
 	_, err = model.CreateMapManager()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// create singleton instance from APIKeyManager
+	_, err = model.CreateAPIKeyManager()
 	if err != nil {
 		log.Fatal(err)
 	}

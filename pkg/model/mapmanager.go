@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	instance *MapManager // singleton instance
+	mapManager *MapManager // singleton instance
 )
 
 // MapManager manages Maps, reads and stores them.
@@ -24,19 +24,19 @@ type MapManager struct {
 
 // CreateMapManager creates MapManager singleton instance.
 func CreateMapManager() (*MapManager, error) {
-	instance = &MapManager{
+	mapManager = &MapManager{
 		Maps: make(map[int]*ProxyMap),
 	}
-	err := instance.readDB()
-	return instance, err
+	err := mapManager.readDB()
+	return mapManager, err
 }
 
 // GetMapManager returns instance of MapManager.
 func GetMapManager() *MapManager {
-	if instance == nil {
+	if mapManager == nil {
 		log.Panic("MapManager instance not created, has model.CreateMapManager() been called?")
 	}
-	return instance
+	return mapManager
 }
 
 // GetMaps returns database.FileMaps.
@@ -49,6 +49,7 @@ func (mm *MapManager) GetMaps() database.FileMaps {
 	return maps
 }
 
+// GetMap returns given map.
 func (mm *MapManager) GetMap(id int) *Map {
 	m := mm.Maps[id]
 	if m != nil {
