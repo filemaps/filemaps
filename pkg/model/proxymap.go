@@ -57,8 +57,10 @@ func (p *ProxyMap) Read() error {
 	}
 	path := p.getFilePath()
 	err := p.readFile(path)
-	if err != nil {
+	if err == nil {
 		p.IsRead = true
+		// override title, use JSON title
+		p.Title = p.Title2
 	}
 	return err
 }

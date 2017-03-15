@@ -9,7 +9,9 @@ package model
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/filemaps/filemaps-backend/pkg/database"
+	"path/filepath"
 	"sort"
+	"time"
 )
 
 var (
@@ -60,21 +62,54 @@ func (mm *MapManager) GetMap(id int) *Map {
 }
 
 // AddMap adds new Map and assigns new ID for it.
-func (mm *MapManager) AddMap(fm *database.FileMap) error {
+func (mm *MapManager) AddMap(fm *database.FileMap) (*ProxyMap, error) {
 	// add entry to db and get id
 	db := database.NewDB()
 	if err := db.Open(); err != nil {
-		return err
+		return nil, err
 	}
 	defer db.Close()
 
 	if err := db.AddFileMap(fm); err != nil {
-		return err
+		return nil, err
 	}
 
 	pm := NewProxyMap(fm)
 	mm.Maps[pm.ID] = pm
-	pm.Write()
+	return pm, nil
+}
+
+// ImportMap imports new Map from filemap JSON file.
+func (mm *MapManager) ImportMap(path string) (*ProxyMap, error) {
+	base := filepath.Dir(path)
+	file := filepath.Base(path)
+
+	if pm := mm.findMapByFile(base, file); pm != nil {
+		// given path already exists
+		return pm, nil
+	}
+
+	// import new map
+	fm := database.FileMap{
+		Base:   base,
+		File:   file,
+		Opened: time.Now(),
+	}
+	// read title from file
+	pm := NewProxyMap(&fm)
+	if err := pm.Read(); err != nil {
+		return nil, err
+	}
+	fm.Title = pm.Title
+	return mm.AddMap(&fm)
+}
+
+func (mm *MapManager) findMapByFile(base string, file string) *ProxyMap {
+	for _, pm := range mm.Maps {
+		if pm.Base == base && pm.File == file {
+			return pm
+		}
+	}
 	return nil
 }
 

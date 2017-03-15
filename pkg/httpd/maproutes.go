@@ -28,6 +28,7 @@ func routeMaps(r *httprouter.Router) {
 	r.GET(mapURL, ReadMap)
 	r.PUT(mapURL, UpdateMap)
 	r.DELETE(mapURL, DeleteMap)
+	r.POST(mapURL, ImportMap)
 
 	routeResources(r, mapURL)
 }
@@ -70,8 +71,54 @@ func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		Opened: time.Now(),
 	}
 	mm := model.GetMapManager()
-	mm.AddMap(&fm)
-	writeMap(w, fm.ID)
+	pm, err := mm.AddMap(&fm)
+	if err != nil {
+		WriteJSONError(w, 500, "could not add map")
+		return
+	}
+	if err = pm.Write(); err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("Could not write map")
+		WriteJSONError(w, 500, "could not add map")
+		return
+	}
+	writeMap(w, pm.ID)
+}
+
+// ImportMap imports existing Map.
+func ImportMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	if ps.ByName("mapid") != "import" {
+		WriteJSONError(w, 400, "bad request")
+		return
+	}
+
+	type JSONRequest struct {
+		Path string `json:"path"`
+	}
+	var jr JSONRequest
+	d := json.NewDecoder(r.Body)
+	err := d.Decode(&jr)
+	r.Body.Close()
+	if err != nil {
+		WriteJSONError(w, 400, "bad request")
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"path": jr.Path,
+	}).Info("Import Map")
+
+	mm := model.GetMapManager()
+	pm, err := mm.ImportMap(jr.Path)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("Could not import map")
+		WriteJSONError(w, 500, "could not import map")
+		return
+	}
+	writeMap(w, pm.ID)
 }
 
 // ReadMap is controller for getting a map.

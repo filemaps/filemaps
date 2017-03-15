@@ -49,6 +49,8 @@ func WriteJSONError(w http.ResponseWriter, code int, err string) {
 }
 
 // authMiddleware authenticates the request.
+// Request must come from trusted address or X-API-Key header must
+// contain a valid API key.
 func authMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		model.GetAPIKeyManager()
