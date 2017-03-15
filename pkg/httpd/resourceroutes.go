@@ -24,6 +24,9 @@ func routeResources(r *httprouter.Router, mapURL string) {
 
 	resourceURL := resourcesURL + "/:rid"
 	r.GET(resourceURL, ReadResource)
+	// DELETE with JSON request body is problematic,
+	// using POST for multi-delete
+	r.POST(resourceURL, DeleteResources)
 	r.DELETE(resourceURL, DeleteResource)
 }
 
@@ -42,8 +45,7 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		Items []Item `json:"items"`
 	}
 	var jr JSONRequest
-	d := json.NewDecoder(r.Body)
-	err := d.Decode(&jr)
+	err := json.NewDecoder(r.Body).Decode(&jr)
 	r.Body.Close()
 	if err != nil {
 		WriteJSONError(w, 400, "bad request")
@@ -109,8 +111,7 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 
 	var jr JSONRequest
-	d := json.NewDecoder(r.Body)
-	err := d.Decode(&jr)
+	err := json.NewDecoder(r.Body).Decode(&jr)
 	r.Body.Close()
 	if err != nil {
 		WriteJSONError(w, 400, "bad request")
@@ -130,6 +131,38 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 	pm.Write()
 	writeResources(w, pm.Map, ids)
+}
+
+// DeleteResources is controller for deleting multiple resources.
+func DeleteResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pm := findProxyMap(ps.ByName("mapid"))
+	if pm == nil {
+		WriteJSONError(w, 404, "map not found")
+		return
+	}
+
+	if ps.ByName("rid") != "delete" {
+		WriteJSONError(w, 400, "bad request")
+		return
+	}
+
+	type JSONRequest struct {
+		IDs []int `json:"ids"`
+	}
+	var jr JSONRequest
+	err := json.NewDecoder(r.Body).Decode(&jr)
+	r.Body.Close()
+	if err != nil {
+		WriteJSONError(w, 400, "bad request")
+		return
+	}
+
+	for _, id := range jr.IDs {
+		pm.DeleteResource(id)
+	}
+
+	pm.Write()
+	fmt.Fprint(w, "{}")
 }
 
 // DeleteResource is controller for deleting a resource.
