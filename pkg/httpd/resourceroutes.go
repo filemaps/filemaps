@@ -19,24 +19,27 @@ import (
 
 func routeResources(r *httprouter.Router, mapURL string) {
 	resourcesURL := mapURL + "/resources"
-	r.POST(resourcesURL, CreateResource)
+	r.POST(resourcesURL, CreateResources)
+	r.PUT(resourcesURL, UpdateResources)
 
 	resourceURL := resourcesURL + "/:rid"
 	r.GET(resourceURL, ReadResource)
-	r.PUT(resourceURL, UpdateResource)
 	r.DELETE(resourceURL, DeleteResource)
 }
 
-// CreateResource creates new Resource.
-func CreateResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// CreateResource creates new Resources.
+func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	pm := findProxyMap(ps.ByName("mapid"))
 	if pm == nil {
 		WriteJSONError(w, 404, "map not found")
 		return
 	}
 
-	type JSONRequest struct {
+	type Item struct {
 		Path string `json:"path"`
+	}
+	type JSONRequest struct {
+		Items []Item `json:"items"`
 	}
 	var jr JSONRequest
 	d := json.NewDecoder(r.Body)
@@ -48,23 +51,27 @@ func CreateResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	}
 
 	log.WithFields(log.Fields{
-		"path": jr.Path,
-	}).Info("Create Resource")
+		"items": jr.Items,
+	}).Info("Create Resources")
 
-	rsrc := model.Resource{
-		Type: model.ResourceFile,
-		Path: jr.Path,
-		Pos: model.ResourcePos{
-			X: 0,
-			Y: 0,
-			Z: 0,
-		},
+	var ids []int
+	for _, item := range jr.Items {
+		rsrc := model.Resource{
+			Type: model.ResourceFile,
+			Path: item.Path,
+			Pos: model.ResourcePos{
+				X: 0,
+				Y: 0,
+				Z: 0,
+			},
+		}
+
+		rID := pm.AddResource(&rsrc)
+		ids = append(ids, rID)
 	}
-
-	rID := pm.AddResource(&rsrc)
 	pm.Write()
 
-	writeResource(w, pm.Map, rID)
+	writeResources(w, pm.Map, ids)
 }
 
 // ReadResource is controller for getting a resource.
@@ -86,25 +93,24 @@ func ReadResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 }
 
 // UpdateResource updates existing resource.
-func UpdateResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	pm := findProxyMap(ps.ByName("mapid"))
 	if pm == nil {
 		WriteJSONError(w, 404, "map not found")
 		return
 	}
 
-	id, err := strconv.Atoi(ps.ByName("rid"))
-	if err != nil {
-		WriteJSONError(w, 404, "resource not found")
-		return
-	}
-
-	type JSONRequest struct {
+	type ResourceData struct {
+		ID  int               `json:"id"`
 		Pos model.ResourcePos `json:"pos"`
 	}
+	type JSONRequest struct {
+		Resources []ResourceData `json:"resources"`
+	}
+
 	var jr JSONRequest
 	d := json.NewDecoder(r.Body)
-	err = d.Decode(&jr)
+	err := d.Decode(&jr)
 	r.Body.Close()
 	if err != nil {
 		WriteJSONError(w, 400, "bad request")
@@ -112,15 +118,18 @@ func UpdateResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	}
 
 	pm.Read()
-	rsrc := pm.Resources[id]
-	if rsrc == nil {
-		WriteJSONError(w, 404, "resource not found")
-		return
+	var ids []int
+	for _, resData := range jr.Resources {
+		rsrc := pm.Resources[resData.ID]
+		if rsrc == nil {
+			WriteJSONError(w, 404, fmt.Sprintf("resource %d not found", resData.ID))
+			return
+		}
+		rsrc.Pos = resData.Pos
+		ids = append(ids, resData.ID)
 	}
-
-	rsrc.Pos = jr.Pos
 	pm.Write()
-	writeResource(w, pm.Map, id)
+	writeResources(w, pm.Map, ids)
 }
 
 // DeleteResource is controller for deleting a resource.
@@ -149,6 +158,11 @@ type ResourceResponse struct {
 	*model.Resource
 }
 
+// ResourceResponse is struct used for JSON response.
+type ResourcesResponse struct {
+	Resources []ResourceResponse `json:"resources"`
+}
+
 func writeResource(w http.ResponseWriter, m *model.Map, id int) {
 	rsrc := m.Resources[id]
 	if rsrc != nil {
@@ -160,4 +174,21 @@ func writeResource(w http.ResponseWriter, m *model.Map, id int) {
 	} else {
 		WriteJSONError(w, 404, "resource not found")
 	}
+}
+
+func writeResources(w http.ResponseWriter, m *model.Map, ids []int) {
+	resp := ResourcesResponse{}
+	for _, id := range ids {
+		rsrc := m.Resources[id]
+		if rsrc != nil {
+			rr := ResourceResponse{
+				ID:       id,
+				Resource: rsrc,
+			}
+			resp.Resources = append(resp.Resources, rr)
+		} else {
+			WriteJSONError(w, 404, "resource not found")
+		}
+	}
+	WriteJSON(w, resp)
 }

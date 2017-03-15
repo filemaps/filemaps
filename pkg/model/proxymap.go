@@ -138,7 +138,7 @@ func (p *ProxyMap) DeleteResource(resourceID int) {
 
 // getNewResourceID returns unassigned ResourceID.
 func (p *ProxyMap) getNewResourceID() int {
-	max := -1
+	max := 0
 	for id := range p.Resources {
 		if id > max {
 			max = id
