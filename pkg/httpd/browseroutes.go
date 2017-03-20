@@ -39,6 +39,11 @@ func Browse(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		"path": jr.Path,
 	}).Info("Browse")
 
+	if jr.Path == "" {
+		WriteJSONError(w, 400, "empty path")
+		return
+	}
+
 	dir, err := browser.ScanDir(jr.Path)
 	if err != nil {
 		log.WithFields(log.Fields{

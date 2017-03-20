@@ -32,13 +32,15 @@ type Item struct {
 // Dir is directory struct.
 type Dir struct {
 	Path     string `json:"path"`
+	Parent   string `json:"parent"`
 	Contents []Item `json:"contents"`
 }
 
 // ScanDir scans given directory and returns Dir struct.
 func ScanDir(path string) (Dir, error) {
 	d := Dir{
-		Path: path,
+		Path:   path,
+		Parent: filepath.Dir(path),
 	}
 
 	infos, err := ioutil.ReadDir(path)
