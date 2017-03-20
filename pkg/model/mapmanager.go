@@ -45,7 +45,7 @@ func GetMapManager() *MapManager {
 func (mm *MapManager) GetMaps() database.FileMaps {
 	var maps database.FileMaps
 	for _, pm := range mm.Maps {
-		maps = append(maps, pm.Map.FileMap)
+		maps = append(maps, &pm.Map.FileMap)
 	}
 	sort.Sort(maps)
 	return maps
@@ -62,7 +62,7 @@ func (mm *MapManager) GetMap(id int) *Map {
 }
 
 // AddMap adds new Map and assigns new ID for it.
-func (mm *MapManager) AddMap(fm *database.FileMap) (*ProxyMap, error) {
+func (mm *MapManager) AddMap(fm database.FileMap) (*ProxyMap, error) {
 	// add entry to db and get id
 	db := database.NewDB()
 	if err := db.Open(); err != nil {
@@ -70,7 +70,7 @@ func (mm *MapManager) AddMap(fm *database.FileMap) (*ProxyMap, error) {
 	}
 	defer db.Close()
 
-	if err := db.AddFileMap(fm); err != nil {
+	if err := db.AddFileMap(&fm); err != nil {
 		return nil, err
 	}
 
@@ -96,12 +96,12 @@ func (mm *MapManager) ImportMap(path string) (*ProxyMap, error) {
 		Opened: time.Now(),
 	}
 	// read title from file
-	pm := NewProxyMap(&fm)
+	pm := NewProxyMap(fm)
 	if err := pm.Read(); err != nil {
 		return nil, err
 	}
 	fm.Title = pm.Title
-	return mm.AddMap(&fm)
+	return mm.AddMap(fm)
 }
 
 func (mm *MapManager) findMapByFile(base string, file string) *ProxyMap {
@@ -141,12 +141,12 @@ func (mm *MapManager) readDB() error {
 		return err
 	}
 	for _, fm := range fms {
-		pm := NewProxyMap(&fm)
+		pm := NewProxyMap(fm)
 		mm.Maps[pm.ID] = pm
 		log.WithFields(log.Fields{
 			"ID":    pm.ID,
 			"Title": pm.Title,
-		}).Info(pm.Title)
+		}).Info("filemap read from db")
 	}
 	return nil
 }

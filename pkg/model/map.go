@@ -28,12 +28,12 @@ type MapFileData MapFileDataV1
 
 // Map struct
 type Map struct {
-	*db.FileMap
+	db.FileMap
 	MapFileData
 }
 
 // NewMap creates a new Map struct
-func NewMap(fm *db.FileMap) *Map {
+func NewMap(fm db.FileMap) *Map {
 	m := &Map{
 		FileMap: fm,
 		MapFileData: MapFileData{

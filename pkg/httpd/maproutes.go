@@ -71,7 +71,7 @@ func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		Opened: time.Now(),
 	}
 	mm := model.GetMapManager()
-	pm, err := mm.AddMap(&fm)
+	pm, err := mm.AddMap(fm)
 	if err != nil {
 		WriteJSONError(w, 500, "could not add map")
 		return

@@ -26,7 +26,7 @@ type ProxyMap struct {
 }
 
 // NewProxyMap creates a new ProxyMap
-func NewProxyMap(fm *db.FileMap) *ProxyMap {
+func NewProxyMap(fm db.FileMap) *ProxyMap {
 	p := &ProxyMap{
 		Map:     NewMap(fm),
 		IsRead:  false,

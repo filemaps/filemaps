@@ -21,7 +21,8 @@ const (
 func route(r *httprouter.Router) {
 	r.GET("/", Index)
 	r.GET("/hello/:name", Hello)
-	r.ServeFiles("/gl/*filepath", http.Dir("filemaps-webui/build"))
+	staticPath := "filemaps-webui"
+	r.ServeFiles("/gl/*filepath", http.Dir(staticPath))
 	routeMaps(r)
 	routeBrowse(r)
 }
