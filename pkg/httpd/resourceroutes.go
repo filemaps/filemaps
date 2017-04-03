@@ -28,6 +28,8 @@ func routeResources(r *httprouter.Router, mapURL string) {
 	// using POST for multi-delete
 	r.POST(resourceURL, DeleteResources)
 	r.DELETE(resourceURL, DeleteResource)
+
+	r.GET(resourceURL+"/open", OpenResource)
 }
 
 // CreateResource creates new Resources.
@@ -181,6 +183,27 @@ func DeleteResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 
 	pm.DeleteResource(id)
 	pm.Write()
+
+	fmt.Fprint(w, "{}")
+}
+
+// OpenResource is controller for opening a resource.
+func OpenResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pm := findProxyMap(ps.ByName("mapid"))
+	if pm == nil {
+		WriteJSONError(w, 404, "map not found")
+		return
+	}
+
+	id, err := strconv.Atoi(ps.ByName("rid"))
+	if err != nil {
+		WriteJSONError(w, 404, "resource not found")
+		return
+	}
+
+	pm.Read()
+	rsrc := pm.Resources[id]
+	rsrc.Open()
 
 	fmt.Fprint(w, "{}")
 }
