@@ -209,24 +209,14 @@ func OpenResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 }
 
 // ResourceResponse is struct used for JSON response.
-type ResourceResponse struct {
-	ID int `json:"id"`
-	*model.Resource
-}
-
-// ResourceResponse is struct used for JSON response.
 type ResourcesResponse struct {
-	Resources []ResourceResponse `json:"resources"`
+	Resources []*model.Resource `json:"resources"`
 }
 
 func writeResource(w http.ResponseWriter, m *model.Map, id int) {
 	rsrc := m.Resources[id]
 	if rsrc != nil {
-		rr := ResourceResponse{
-			ID:       id,
-			Resource: rsrc,
-		}
-		WriteJSON(w, rr)
+		WriteJSON(w, rsrc)
 	} else {
 		WriteJSONError(w, 404, "resource not found")
 	}
@@ -237,11 +227,7 @@ func writeResources(w http.ResponseWriter, m *model.Map, ids []int) {
 	for _, id := range ids {
 		rsrc := m.Resources[id]
 		if rsrc != nil {
-			rr := ResourceResponse{
-				ID:       id,
-				Resource: rsrc,
-			}
-			resp.Resources = append(resp.Resources, rr)
+			resp.Resources = append(resp.Resources, rsrc)
 		} else {
 			WriteJSONError(w, 404, "resource not found")
 		}

@@ -47,9 +47,10 @@ type ResourcePos ResourcePosV1
 
 // ResourceV1 is the first version from Resource struct
 type ResourceV1 struct {
-	Type ResourceType `json:"type"`
-	Path string       `json:"path"`
-	Pos  ResourcePos  `json:"pos"`
+	ResourceID int          `json:"id"`
+	Type       ResourceType `json:"type"`
+	Path       string       `json:"path"`
+	Pos        ResourcePos  `json:"pos"`
 }
 
 // Resource is alias to the latest Resource version

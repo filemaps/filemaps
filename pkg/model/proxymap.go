@@ -123,10 +123,10 @@ func (p *ProxyMap) SetFile(file string) {
 // Returns new ID.
 func (p *ProxyMap) AddResource(r *Resource) int {
 	p.Read()
-	id := p.getNewResourceID()
-	p.Resources[id] = r
+	r.ResourceID = p.getNewResourceID()
+	p.Resources[r.ResourceID] = r
 	p.Changed = true
-	return id
+	return r.ResourceID
 }
 
 // DeleteResource deletes resource from map.
