@@ -41,7 +41,8 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 
 	type Item struct {
-		Path string `json:"path"`
+		Path string            `json:"path"`
+		Pos  model.ResourcePos `json:"pos"`
 	}
 	type JSONRequest struct {
 		Items []Item `json:"items"`
@@ -63,11 +64,7 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		rsrc := model.Resource{
 			Type: model.ResourceFile,
 			Path: item.Path,
-			Pos: model.ResourcePos{
-				X: 0,
-				Y: 0,
-				Z: 0,
-			},
+			Pos:  item.Pos,
 		}
 
 		rID := pm.AddResource(&rsrc)
