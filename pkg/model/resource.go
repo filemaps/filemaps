@@ -8,6 +8,8 @@ package model
 
 import (
 	log "github.com/Sirupsen/logrus"
+
+	"github.com/filemaps/filemaps-backend/pkg/fileapp"
 )
 
 // ResourceID is unique in Map, identifies Resource
@@ -58,4 +60,5 @@ type Resource ResourceV1
 
 func (r *Resource) Open() {
 	log.Info("OPEN RESOURCE")
+	fileapp.Open(r.Path)
 }
