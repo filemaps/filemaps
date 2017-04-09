@@ -54,5 +54,7 @@ func main() {
 	config.Write(cfg)
 
 	addr := ":8338"
+
+	openBrowser("http://localhost" + addr + "/gl/src/")
 	httpd.RunHTTP(addr)
 }
