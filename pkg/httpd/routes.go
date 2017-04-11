@@ -11,6 +11,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"os/user"
+
+	"github.com/filemaps/filemaps-backend/pkg/filemaps"
 )
 
 const (
@@ -20,7 +23,7 @@ const (
 
 func route(r *httprouter.Router) {
 	r.GET("/", Index)
-	r.GET("/hello/:name", Hello)
+	r.GET(APIURL+"/info", Info)
 	staticPath := "filemaps-webui"
 	r.ServeFiles("/gl/*filepath", http.Dir(staticPath))
 	routeMaps(r)
@@ -33,8 +36,14 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "Welcome!\n")
 }
 
-// Hello is controller for hello
-func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	log.Info("hello request")
-	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
+// Info is controller for information
+func Info(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	resp := make(map[string]interface{})
+	resp["version"] = filemaps.Version
+	usr, _ := user.Current()
+	if usr != nil {
+		resp["homeDir"] = usr.HomeDir
+	}
+
+	WriteJSON(w, resp)
 }
