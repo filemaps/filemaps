@@ -30,6 +30,13 @@ func init() {
 func main() {
 	log.Info("File Maps starting")
 
+	if err := config.EnsureDir(); err != nil {
+		log.WithFields(log.Fields{
+			"err":  err,
+			"path": config.GetDir(),
+		}).Fatal("Config directory could not be created")
+	}
+
 	// initialize database
 	err := database.InitDatabase()
 	if err != nil {

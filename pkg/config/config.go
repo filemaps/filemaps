@@ -35,6 +35,11 @@ func New() Configuration {
 	return cfg
 }
 
+// EnsureDir makes sure config path exists.
+func EnsureDir() error {
+	return os.MkdirAll(GetDir(), 0700)
+}
+
 // Read parses config file and returns Configuration,
 // if file not found, returns a new Configuration
 func Read() (Configuration, error) {
