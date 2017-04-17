@@ -23,15 +23,25 @@ const (
 	CfgFileName = "config.json"
 )
 
+var (
+	cfg *Configuration // singleton instance
+)
+
 // Configuration struct
 type Configuration struct {
 	Version string
 }
 
-// New returns new Configuration
-func New() Configuration {
-	var cfg Configuration
-	cfg.Version = filemaps.Version
+// CreateConfiguration creates Configuration singleton instance.
+func CreateConfiguration() (*Configuration, error) {
+	return readFile(getPath())
+}
+
+// GetConfiguration returns instance of Configuration.
+func GetConfiguration() *Configuration {
+	if cfg == nil {
+		log.Panic("Configuration instance not created, has model.CreateConfiguration() been called?")
+	}
 	return cfg
 }
 
@@ -40,50 +50,46 @@ func EnsureDir() error {
 	return os.MkdirAll(GetDir(), 0700)
 }
 
-// Read parses config file and returns Configuration,
-// if file not found, returns a new Configuration
-func Read() (Configuration, error) {
-	return readFile(getPath())
-}
-
-func readFile(path string) (Configuration, error) {
+func readFile(path string) (*Configuration, error) {
 	fd, err := os.Open(path)
 	if err != nil && os.IsNotExist(err) {
 		log.Info(path + " does not exist, creating new")
-		cfg := New()
+		cfg = &Configuration{
+			Version: filemaps.Version,
+		}
 		// write new config to disk
-		err = Write(cfg)
-		return cfg, err
+		err = cfg.Write()
+		return cfg, nil
 	} else if err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
 	defer fd.Close()
 	return ParseJSON(fd)
 }
 
 // ParseJSON parses Configuration from given reader
-func ParseJSON(r io.Reader) (Configuration, error) {
-	var cfg Configuration
+func ParseJSON(r io.Reader) (*Configuration, error) {
 	bs, err := ioutil.ReadAll(r)
 	if err != nil {
 		log.Error(err)
-		return Configuration{}, err
+		return nil, err
 	}
-	if err := json.Unmarshal(bs, &cfg); err != nil {
+	cfg = &Configuration{}
+	if err := json.Unmarshal(bs, cfg); err != nil {
 		log.WithFields(log.Fields{
-			"data": bs,
+			"data": string(bs),
 		}).Error(err)
-		return Configuration{}, err
+		return nil, err
 	}
 	return cfg, nil
 }
 
-// Write writes given Configuration to config file
-func Write(cfg Configuration) error {
-	return writeFile(cfg, getPath())
+// Write writes config file
+func (c *Configuration) Write() error {
+	return c.writeFile(getPath())
 }
 
-func writeFile(cfg Configuration, path string) error {
+func (c *Configuration) writeFile(path string) error {
 	data, err := json.Marshal(cfg)
 
 	// make sure cfg dir exists

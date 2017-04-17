@@ -15,7 +15,7 @@ func TestReadWrite(t *testing.T) {
 	if err != nil {
 		t.Error("Error in GetOrCreate", err)
 	} else {
-		err = Write(cfg)
+		err = cfg.Write()
 		if err != nil {
 			t.Error("Error in write", err)
 		}

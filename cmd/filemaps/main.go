@@ -57,8 +57,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cfg, _ := config.Read()
-	config.Write(cfg)
+	config.CreateConfiguration()
 
 	addr := ":8338"
 

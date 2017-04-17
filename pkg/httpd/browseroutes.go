@@ -8,11 +8,10 @@ package httpd
 
 import (
 	"encoding/json"
-	//"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
-	//"strconv"
+
 	"github.com/filemaps/filemaps-backend/pkg/browser"
 )
 
