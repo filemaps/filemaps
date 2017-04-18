@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/filemaps/filemaps-backend/pkg/config"
 	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
@@ -74,5 +75,18 @@ func authMiddleware(handler http.Handler) http.Handler {
 }
 
 func addrIsTrusted(addr string) bool {
-	return addr == "127.0.0.1"
+	if addr == "127.0.0.1" {
+		return true
+	}
+
+	// check trusted addresses from config
+	cfg := config.GetConfiguration()
+	addrs := strings.Split(cfg.TrustedAddresses, ",")
+	for _, a := range addrs {
+		if addr == a {
+			return true
+		}
+	}
+
+	return false
 }

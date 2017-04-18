@@ -32,6 +32,7 @@ type Configuration struct {
 	Version              string `json:"version"`
 	TextEditor           string `json:"textEditor"`
 	TextEditorCustom1Cmd string `json:"textEditorCustom1Cmd"`
+	TrustedAddresses     string `json:"trustedAddresses"`
 }
 
 // CreateConfiguration creates Configuration singleton instance.
