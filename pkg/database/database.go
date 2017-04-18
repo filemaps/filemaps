@@ -40,7 +40,7 @@ func InitDatabase() error {
 // Open opens database connection.
 // Remember to call Close().
 func (db *Database) Open() error {
-	path := filepath.Join(config.GetDir(), "filemaps.db")
+	path := filepath.Join(config.GetDir(), "filemaps.sqlite3")
 	return db.openFile(path)
 }
 

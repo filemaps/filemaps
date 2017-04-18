@@ -9,49 +9,47 @@ package fileapp
 import (
 	log "github.com/Sirupsen/logrus"
 	"os/exec"
-)
+	"strings"
 
-const (
-	geditCmd = "gedit"
+	"github.com/filemaps/filemaps-backend/pkg/config"
 )
 
 func init() {
-	// register file app if command exists
-	_, err := exec.Command("which", geditCmd).Output()
-	if err == nil {
-		register(NewGedit())
-	}
+	register(NewCustom())
 }
 
-// Gedit implements FileApp interface
-type Gedit struct {
+type Custom struct {
 }
 
-func NewGedit() *Gedit {
-	return &Gedit{}
+func NewCustom() *Custom {
+	return &Custom{}
 }
 
-func (a *Gedit) getInfo() FileAppInfo {
+func (a *Custom) getInfo() FileAppInfo {
 	return FileAppInfo{
-		ID:   "gedit",
-		Name: "gedit",
+		ID:   "custom1",
+		Name: "Custom",
 	}
 }
 
-func (a *Gedit) open(path string) int {
+func (a *Custom) open(path string) int {
 	log.WithFields(log.Fields{
 		"path": path,
-	}).Info("Gedit: open")
+	}).Info("Custom: open")
 
-	out, err := exec.Command(geditCmd, path).Output()
+	cfg := config.GetConfiguration()
+	cmd := strings.Split(cfg.TextEditorCustom1Cmd, " ")
+	cmd = append(cmd, path)
+
+	out, err := exec.Command(cmd[0], cmd[1:]...).Output()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Error("gedit open error")
+		}).Error("Custom open error")
 		return -1
 	}
 	log.WithFields(log.Fields{
 		"out": out,
-	}).Info("gedit")
+	}).Info("Custom")
 	return 0
 }

@@ -29,7 +29,9 @@ var (
 
 // Configuration struct
 type Configuration struct {
-	Version string
+	Version              string `json:"version"`
+	TextEditor           string `json:"textEditor"`
+	TextEditorCustom1Cmd string `json:"textEditorCustom1Cmd"`
 }
 
 // CreateConfiguration creates Configuration singleton instance.

@@ -8,17 +8,17 @@ package fileapp
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"os"
 	"os/exec"
 )
 
 const (
-	gvimBin = "/usr/bin/gvim"
+	gvimCmd = "gvim"
 )
 
 func init() {
-	// register file app if binary exists
-	if _, err := os.Stat(gvimBin); err == nil {
+	// register file app if command exists
+	_, err := exec.Command("which", gvimCmd).Output()
+	if err == nil {
 		register(NewGVim())
 	}
 }
@@ -30,8 +30,11 @@ func NewGVim() *GVim {
 	return &GVim{}
 }
 
-func (a *GVim) getName() string {
-	return "GVim"
+func (a *GVim) getInfo() FileAppInfo {
+	return FileAppInfo{
+		ID:   "gvim",
+		Name: "GVim",
+	}
 }
 
 func (a *GVim) open(path string) int {
@@ -39,7 +42,7 @@ func (a *GVim) open(path string) int {
 		"path": path,
 	}).Info("GVim: open")
 
-	out, err := exec.Command(gvimBin, "-p", "--remote-tab-silent", path).Output()
+	out, err := exec.Command(gvimCmd, "-p", "--remote-tab-silent", path).Output()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,

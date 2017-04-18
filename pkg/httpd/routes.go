@@ -28,6 +28,7 @@ func route(r *httprouter.Router) {
 	r.ServeFiles("/gl/*filepath", http.Dir(staticPath))
 	routeMaps(r)
 	routeBrowse(r)
+	routeConfig(r)
 }
 
 // Index is controller for root URL
