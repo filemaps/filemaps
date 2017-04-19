@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	target = "github.com/filemaps/filemaps-backend/cmd/filemaps"
+	target    = "github.com/filemaps/filemaps-backend/cmd/filemaps"
+	webuiPath = "filemaps-webui/src/"
 )
 
 var tmpl = template.Must(template.New("assets").Parse(`package httpd
@@ -52,7 +53,7 @@ var (
 
 func main() {
 	log.Info("Building and installing File Maps")
-	packageWebUI("filemaps-webui/src/", "pkg/httpd/webui.go")
+	packageWebUI(webuiPath, "pkg/httpd/webui.go")
 	run("go", "install", target)
 }
 
@@ -111,6 +112,12 @@ func packageWebUI(path string, out string) {
 	log.Info("Packaging Web UI")
 	filepath.Walk(path, getWalkFunc(path))
 
+	if len(assets) == 0 {
+		log.WithFields(log.Fields{
+			"path": path,
+		}).Fatal("No Web UI files found. Make sure you have installed them into path")
+		return
+	}
 	var buf bytes.Buffer
 	tmpl.Execute(&buf, tmplVars{
 		Assets: assets,
