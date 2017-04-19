@@ -19,16 +19,18 @@ import (
 const (
 	// APIURL is prefix for REST API URL.
 	APIURL = "/api"
+	// UIURL is prefix for Web UI URL.
+	UIURL = "/ui"
 )
 
-func route(r *httprouter.Router) {
+func route(r *httprouter.Router, webUIPath string) {
 	r.GET("/", Index)
 	r.GET(APIURL+"/info", Info)
-	staticPath := "filemaps-webui"
-	r.ServeFiles("/gl/*filepath", http.Dir(staticPath))
+
 	routeMaps(r)
 	routeBrowse(r)
 	routeConfig(r)
+	routeWebUI(r, webUIPath)
 }
 
 // Index is controller for root URL

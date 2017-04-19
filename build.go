@@ -53,7 +53,7 @@ var (
 
 func main() {
 	log.Info("Building and installing File Maps")
-	packageWebUI(webuiPath, "pkg/httpd/webui.go")
+	bundleWebUI(webuiPath, "pkg/httpd/webui.go")
 	run("go", "install", target)
 }
 
@@ -107,9 +107,10 @@ func getWalkFunc(base string) filepath.WalkFunc {
 }
 
 // packageWebUI packages Web UI files into a single go file.
-// All files are gzipped and base64 encoded into static strings.
-func packageWebUI(path string, out string) {
-	log.Info("Packaging Web UI")
+// All files are gzipped and base64 encoded into static strings
+// which are served by HTTP server.
+func bundleWebUI(path string, out string) {
+	log.Info("Bundling Web UI")
 	filepath.Walk(path, getWalkFunc(path))
 
 	if len(assets) == 0 {
@@ -133,5 +134,5 @@ func packageWebUI(path string, out string) {
 	}
 	log.WithFields(log.Fields{
 		"output": out,
-	}).Info("Web UI packaged")
+	}).Info("Web UI bundled")
 }

@@ -18,9 +18,9 @@ import (
 )
 
 // RunHTTP starts HTTP server
-func RunHTTP(addr string) {
+func RunHTTP(addr string, webUIPath string) {
 	router := httprouter.New()
-	route(router)
+	route(router, webUIPath)
 	handler := authMiddleware(router)
 	log.WithFields(log.Fields{
 		"transport": "HTTP",

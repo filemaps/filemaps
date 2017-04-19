@@ -22,6 +22,7 @@ import (
 var (
 	noBrowser bool
 	port      int
+	webUIPath string
 )
 
 func init() {
@@ -35,6 +36,7 @@ func init() {
 
 	flag.BoolVar(&noBrowser, "no-browser", false, "Do not open browser")
 	flag.IntVar(&port, "port", 8338, "Port to listen to")
+	flag.StringVar(&webUIPath, "webui", "", "Path of Web UI files")
 }
 
 func main() {
@@ -74,7 +76,7 @@ func main() {
 	addr := ":" + strconv.Itoa(port)
 
 	if noBrowser == false {
-		openBrowser("http://localhost" + addr + "/gl/src/")
+		openBrowser("http://localhost" + addr + httpd.UIURL)
 	}
-	httpd.RunHTTP(addr)
+	httpd.RunHTTP(addr, webUIPath)
 }
