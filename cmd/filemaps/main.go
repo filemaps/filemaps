@@ -7,14 +7,21 @@
 package main
 
 import (
+	"flag"
 	log "github.com/Sirupsen/logrus"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/filemaps/filemaps-backend/pkg/config"
 	"github.com/filemaps/filemaps-backend/pkg/database"
 	"github.com/filemaps/filemaps-backend/pkg/httpd"
 	"github.com/filemaps/filemaps-backend/pkg/model"
+)
+
+var (
+	noBrowser bool
+	port      int
 )
 
 func init() {
@@ -25,10 +32,15 @@ func init() {
 		FullTimestamp:   true,
 		TimestampFormat: "15:04:05.000",
 	})
+
+	flag.BoolVar(&noBrowser, "no-browser", false, "Do not open browser")
+	flag.IntVar(&port, "port", 8338, "Port to listen to")
 }
 
 func main() {
 	log.Info("File Maps starting")
+
+	flag.Parse()
 
 	if err := config.EnsureDir(); err != nil {
 		log.WithFields(log.Fields{
@@ -59,8 +71,10 @@ func main() {
 
 	config.CreateConfiguration()
 
-	addr := ":8338"
+	addr := ":" + strconv.Itoa(port)
 
-	openBrowser("http://localhost" + addr + "/gl/src/")
+	if noBrowser == false {
+		openBrowser("http://localhost" + addr + "/gl/src/")
+	}
 	httpd.RunHTTP(addr)
 }
