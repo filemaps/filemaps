@@ -79,6 +79,9 @@ func authMiddleware(handler http.Handler) http.Handler {
 func addrIsTrusted(addr string) bool {
 	// strip port
 	addr = addr[:strings.LastIndex(addr, ":")]
+	// remove square brackets from ipv6 addr
+	addr = strings.Replace(addr, "[", "", -1)
+	addr = strings.Replace(addr, "]", "", -1)
 	remoteIP := net.ParseIP(addr)
 	if remoteIP == nil {
 		log.WithFields(log.Fields{
