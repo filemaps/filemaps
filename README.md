@@ -10,9 +10,15 @@ First, install [glide][2], vendor package management.
     glide install
     go run build.go
 
+### Windows
+
+In Windows you need [mingw-w64 gcc][3] for compiling required [sqlite3][4].
+
 ## License
 
 Backend component is licensed under the [MPLv2 License][1].
 
 [1]: https://github.com/filemaps/filemaps-backend/blob/master/LICENSE
 [2]: https://github.com/Masterminds/glide
+[3]: https://mingw-w64.org/
+[4]: https://github.com/mattn/go-sqlite3
