@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
+	"net"
 	"net/http"
 	"strings"
 
@@ -55,8 +56,7 @@ func WriteJSONError(w http.ResponseWriter, code int, err string) {
 func authMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		model.GetAPIKeyManager()
-		ip := strings.Split(r.RemoteAddr, ":")
-		if addrIsTrusted(ip[0]) {
+		if addrIsTrusted(r.RemoteAddr) {
 			handler.ServeHTTP(w, r)
 			return
 		}
@@ -74,8 +74,21 @@ func authMiddleware(handler http.Handler) http.Handler {
 	})
 }
 
+// addrIsTrusted returns true if given address is trusted.
+// addr is request.RemoteAddr which has format IP:port
 func addrIsTrusted(addr string) bool {
-	if addr == "127.0.0.1" {
+	// strip port
+	addr = addr[:strings.LastIndex(addr, ":")]
+	remoteIP := net.ParseIP(addr)
+	if remoteIP == nil {
+		log.WithFields(log.Fields{
+			"ip": addr,
+		}).Error("Could not parse remote IP")
+		return false
+	}
+
+	// trust loopback addresses
+	if remoteIP.IsLoopback() {
 		return true
 	}
 
@@ -83,7 +96,8 @@ func addrIsTrusted(addr string) bool {
 	cfg := config.GetConfiguration()
 	addrs := strings.Split(cfg.TrustedAddresses, ",")
 	for _, a := range addrs {
-		if addr == a {
+		trustedIP := net.ParseIP(a)
+		if trustedIP != nil && trustedIP.Equal(remoteIP) {
 			return true
 		}
 	}
