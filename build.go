@@ -23,7 +23,7 @@ import (
 
 const (
 	target    = "github.com/filemaps/filemaps-backend/cmd/filemaps"
-	webuiPath = "filemaps-webui/src/"
+	webuiPath = "filemaps-webui/"
 )
 
 var tmpl = template.Must(template.New("assets").Parse(`package httpd
