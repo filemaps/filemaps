@@ -1,7 +1,11 @@
 # File Maps Backend
 
+![File Maps Logo](https://codeboy.fi/filemaps_logo.png)
+
 [![Build Status](https://travis-ci.org/filemaps/filemaps-backend.svg?branch=master)](https://travis-ci.org/filemaps/filemaps-backend)
 [![MPLv2 License](https://img.shields.io/badge/license-MPLv2-blue.svg?style=flat-square)](https://www.mozilla.org/MPL/2.0/)
+
+File Maps backend component, written in Go.
 
 ## Building
 
