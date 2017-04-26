@@ -30,11 +30,11 @@ var tmpl = template.Must(template.New("assets").Parse(`package httpd
 
 import "encoding/base64"
 
-func GetAssets() map[string][]byte {
-	var assets = make(map[string][]byte, {{.Assets | len}})
+func init() {
+	var a = make(map[string][]byte, {{.Assets | len}})
 {{range $asset := .Assets}}
-	assets["{{$asset.Name}}"], _ = base64.StdEncoding.DecodeString("{{$asset.Content}}"){{end}}
-	return assets
+	a["{{$asset.Name}}"], _ = base64.StdEncoding.DecodeString("{{$asset.Content}}"){{end}}
+	setAssets(a)
 }
 `))
 

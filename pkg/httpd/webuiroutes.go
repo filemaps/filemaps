@@ -20,6 +20,10 @@ import (
 	"strings"
 )
 
+var (
+	assets map[string][]byte
+)
+
 func routeWebUI(r *httprouter.Router, webUIPath string) {
 	routePath := UIURL + "/*filepath"
 	if webUIPath != "" {
@@ -38,7 +42,6 @@ func webUI(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		path = "index.html"
 	}
 
-	assets := GetAssets()
 	bs, ok := assets[path]
 	if !ok {
 		w.WriteHeader(404)
@@ -80,4 +83,10 @@ func getContentType(file string) string {
 	default:
 		return mime.TypeByExtension(ext)
 	}
+}
+
+// setAssets sets static assets.
+// Called by auto-generated webui.go
+func setAssets(a map[string][]byte) {
+	assets = a
 }
