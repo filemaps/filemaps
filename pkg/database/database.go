@@ -62,9 +62,6 @@ func (db *Database) init() error {
 	if err := db.CreateTableMigrations(); err != nil {
 		return err
 	}
-	if err := db.CreateTableAPIKeys(); err != nil {
-		return err
-	}
 	if err := db.RunMigrations(); err != nil {
 		return err
 	}
