@@ -1,1 +1,17 @@
 language: go
+script:
+- go env
+- GOOS=windows GOARCH=386 go install -pkgdir /tmp/filemaps-pkg github.com/filemaps/filemaps-backend/cmd/filemaps
+- find $GOPATH/bin
+- mkdir -p builds/windows_386
+- cp $GOPATH/bin/windows_386/filemaps.exe builds/windows_386/
+deploy:
+  provider: releases
+  api_key:
+    secure: YrTdyIBhErqEMGz9smGewXd9DQMtKG/q1Uc+M3zAieB9RdyZkPaI+33qqrX3BgQgFveuKamqhXGq8JqI4YbJWPuVhiGDmgUqAmaSS5CcG90T65JoH7rc92UHs1zWRXQCqiJFiVRFxtneUiRBWhGDo4XCNThVokpr4zss7YAeh/jrbvY5qTPuDYavHWhx8RK/WbeMvaZsPm7NKywn9GDgUXJNjPKG5874J8rBDQVy3A52Oop/pr/jB2fd9hIrx6pm0l6MB89DXFLd2O3l8ItuzPIXIyp9HGw86mPew9gxW4C7QKG4rE0wK0/Tu3zZiXPsXGnu58ila6VE76UtOicqVDjEndnarYmDEyrHyRsW8yGZ86FNO4P0ktoXIPgmPaKYAsDGCM84R2kRrFbFV9gFkzNlnqYBsA3IsyGYAcvfyn98Pj68UD26h8Y/JVc0aSqo2yqIHkRMHzsPOVt5iLZakEKS9cDMVV/I5tqtm5NYTQx4XWKrE8gTcOmm3DL3Fr59maxTjRl1A+aXXxvbhSNI+EUKJO0fG2eP86TVxr3dEg5jx4yMzFLzGkDnqOz6ST6SjuPy0M7taPO4fdTr+R6K5t4ENbKMKedYCJdsYRVVc7VSygPKLK4EeGjT8UYBYs27GVZ9F20flIEBfDlldHP/iwAYHhvy/JhWhN3rDHySO2E=
+  file:
+    - "builds/windows_386/filemaps.exe"
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: filemaps/filemaps-backend
