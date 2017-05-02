@@ -15,7 +15,7 @@ const (
 	keyBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
-// APIKey is a database struct for APIKey.
+// APIKey is a struct for API key.
 type APIKey struct {
 	APIKey  string    `json:"apikey"`
 	Expires time.Time `json:"expires"`

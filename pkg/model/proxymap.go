@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 
 	log "github.com/Sirupsen/logrus"
-	db "github.com/filemaps/filemaps-backend/pkg/database"
 )
 
 // ProxyMap is virtual proxy for Map struct
@@ -26,9 +25,9 @@ type ProxyMap struct {
 }
 
 // NewProxyMap creates a new ProxyMap
-func NewProxyMap(fm db.FileMap) *ProxyMap {
+func NewProxyMap(i MapInfo) *ProxyMap {
 	p := &ProxyMap{
-		Map:     NewMap(fm),
+		Map:     NewMap(i),
 		IsRead:  false,
 		Changed: false,
 	}

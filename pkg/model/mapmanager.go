@@ -7,29 +7,47 @@
 package model
 
 import (
+	"encoding/json"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/filemaps/filemaps-backend/pkg/database"
+	"io"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	"github.com/filemaps/filemaps-backend/pkg/config"
+)
+
+const (
+	// MapManagerVersion defines current MapManager version.
+	MapManagerVersion = 1
+	// MapsFileName defines JSON filename
+	MapsFileName = "maps.json"
 )
 
 var (
 	mapManager *MapManager // singleton instance
 )
 
+// MapManagerV1 is first version of MapManager struct.
+type MapManagerV1 struct {
+	Version int               `json:"version"`
+	Maps    map[int]*ProxyMap `json:"maps"` // MapID -> Map
+}
+
 // MapManager manages Maps, reads and stores them.
 // MapManager works as singleton pattern.
-type MapManager struct {
-	Maps map[int]*ProxyMap `json:"maps"` // MapID -> Map
-}
+type MapManager MapManagerV1
 
 // CreateMapManager creates MapManager singleton instance.
 func CreateMapManager() (*MapManager, error) {
 	mapManager = &MapManager{
-		Maps: make(map[int]*ProxyMap),
+		Version: MapManagerVersion,
+		Maps:    make(map[int]*ProxyMap),
 	}
-	err := mapManager.readDB()
+	err := mapManager.Read()
 	return mapManager, err
 }
 
@@ -41,11 +59,11 @@ func GetMapManager() *MapManager {
 	return mapManager
 }
 
-// GetMaps returns database.FileMaps.
-func (mm *MapManager) GetMaps() database.FileMaps {
-	var maps database.FileMaps
+// GetMaps returns MapInfos.
+func (mm *MapManager) GetMaps() MapInfos {
+	var maps MapInfos
 	for _, pm := range mm.Maps {
-		maps = append(maps, &pm.Map.FileMap)
+		maps = append(maps, &pm.Map.MapInfo)
 	}
 	sort.Sort(maps)
 	return maps
@@ -62,19 +80,9 @@ func (mm *MapManager) GetMap(id int) *Map {
 }
 
 // AddMap adds new Map and assigns new ID for it.
-func (mm *MapManager) AddMap(fm database.FileMap) (*ProxyMap, error) {
-	// add entry to db and get id
-	db := database.NewDB()
-	if err := db.Open(); err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	if err := db.AddFileMap(&fm); err != nil {
-		return nil, err
-	}
-
+func (mm *MapManager) AddMap(fm MapInfo) (*ProxyMap, error) {
 	pm := NewProxyMap(fm)
+	pm.ID = mm.getNewMapID()
 	mm.Maps[pm.ID] = pm
 	return pm, nil
 }
@@ -90,18 +98,18 @@ func (mm *MapManager) ImportMap(path string) (*ProxyMap, error) {
 	}
 
 	// import new map
-	fm := database.FileMap{
+	info := MapInfo{
 		Base:   base,
 		File:   file,
 		Opened: time.Now(),
 	}
 	// read title from file
-	pm := NewProxyMap(fm)
+	pm := NewProxyMap(info)
 	if err := pm.Read(); err != nil {
 		return nil, err
 	}
-	fm.Title = pm.Title
-	return mm.AddMap(fm)
+	info.Title = pm.Title
+	return mm.AddMap(info)
 }
 
 func (mm *MapManager) findMapByFile(base string, file string) *ProxyMap {
@@ -114,39 +122,99 @@ func (mm *MapManager) findMapByFile(base string, file string) *ProxyMap {
 }
 
 // DeleteMap deletes Map with given ID.
-func (mm *MapManager) DeleteMap(mapID int) error {
-	db := database.NewDB()
-	if err := db.Open(); err != nil {
-		return err
-	}
-	defer db.Close()
-
-	if err := db.DeleteFileMap(mapID); err != nil {
-		return err
-	}
+func (mm *MapManager) DeleteMap(mapID int) {
 	delete(mm.Maps, mapID)
-	return nil
 }
 
-func (mm *MapManager) readDB() error {
-	db := database.NewDB()
-	if err := db.Open(); err != nil {
-		return err
+// getNewMapID returns unassigned MapID.
+func (mm *MapManager) getNewMapID() int {
+	max := 0
+	for id := range mm.Maps {
+		if id > max {
+			max = id
+		}
 	}
-	defer db.Close()
+	return max + 1
+}
 
-	// read filemaps db
-	fms, err := db.GetFileMaps(0)
+// Write encodes Map.MapFileData to JSON file.
+func (m *MapManager) Write() error {
+	return m.writeFile(m.getFilePath())
+}
+
+// getFilePath returns full path for API keys file
+func (m *MapManager) getFilePath() string {
+	return filepath.Join(config.GetDir(), MapsFileName)
+}
+
+func (m *MapManager) writeFile(path string) error {
+	data, err := json.Marshal(m)
 	if err != nil {
 		return err
 	}
-	for _, fm := range fms {
-		pm := NewProxyMap(fm)
-		mm.Maps[pm.ID] = pm
-		log.WithFields(log.Fields{
-			"ID":    pm.ID,
-			"Title": pm.Title,
-		}).Info("filemap read from db")
+	err = ioutil.WriteFile(path, data, 0644)
+	return err
+}
+
+// Read decodes JSON data from file.
+func (m *MapManager) Read() error {
+	return m.readFile(m.getFilePath())
+}
+
+func (m *MapManager) readFile(path string) error {
+	fd, err := os.Open(path)
+	if err != nil && os.IsNotExist(err) {
+		log.Info(path + " does not exist, creating new")
+		return m.writeFile(path)
+	} else if err != nil {
+		return err
 	}
+	defer fd.Close()
+
+	err = m.ParseJSON(fd)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err":  err,
+			"path": path,
+		}).Error("Could not read maps JSON file")
+	}
+	return err
+}
+
+// ParseJSON parses API keys from Reader.
+func (m *MapManager) ParseJSON(r io.Reader) error {
+	bs, err := ioutil.ReadAll(r)
+	if err != nil {
+		return err
+	}
+
+	version, err := getJSONVersion(bs)
+	if err != nil {
+		return err
+	}
+
+	data, err := parseMapsVersion(bs, version)
+	if err != nil {
+		return err
+	}
+
+	m.Maps = data.Maps
 	return nil
+}
+
+// Versioning
+
+func parseMapsVersion(bs []byte, version float64) (*MapManager, error) {
+	if version == 1 {
+		var data MapManagerV1
+		if err := json.Unmarshal(bs, &data); err != nil {
+			return nil, err
+		}
+		return convertMapManagerV1(&data)
+	}
+	return nil, fmt.Errorf("Unsupported maps JSON version %g", version)
+}
+
+func convertMapManagerV1(data *MapManagerV1) (*MapManager, error) {
+	return (*MapManager)(data), nil
 }

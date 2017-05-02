@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/filemaps/filemaps-backend/pkg/database"
 	"github.com/filemaps/filemaps-backend/pkg/model"
 )
 
@@ -64,14 +63,14 @@ func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		"file":  jr.File,
 	}).Info("Create Map")
 
-	fm := database.FileMap{
+	info := model.MapInfo{
 		Title:  jr.Title,
 		Base:   jr.Base,
 		File:   jr.File,
 		Opened: time.Now(),
 	}
 	mm := model.GetMapManager()
-	pm, err := mm.AddMap(fm)
+	pm, err := mm.AddMap(info)
 	if err != nil {
 		WriteJSONError(w, 500, "could not add map")
 		return
@@ -83,6 +82,7 @@ func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		WriteJSONError(w, 500, "could not add map")
 		return
 	}
+	mm.Write()
 	writeMap(w, pm.ID)
 }
 
@@ -118,6 +118,7 @@ func ImportMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		WriteJSONError(w, 500, "could not import map")
 		return
 	}
+	mm.Write()
 	writeMap(w, pm.ID)
 }
 
@@ -176,14 +177,8 @@ func DeleteMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	mm := model.GetMapManager()
-	if err := mm.DeleteMap(id); err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-			"id":  id,
-		}).Error("Could not remove map")
-		WriteJSONError(w, 500, "could not remove map")
-		return
-	}
+	mm.DeleteMap(id)
+	mm.Write()
 	fmt.Fprint(w, "{}")
 }
 

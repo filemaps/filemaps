@@ -55,7 +55,7 @@ func GetAPIKeyManager() *APIKeyManager {
 	return apiKeyManager
 }
 
-// GetAPIKeys returns array of database.APIKeys.
+// GetAPIKeys returns array of APIKey pointers.
 func (m *APIKeyManager) GetAPIKeys() []*APIKey {
 	var keys []*APIKey
 	for _, k := range m.APIKeys {
