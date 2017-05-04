@@ -10,6 +10,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
+	"flag"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"go/format"
 	"io"
@@ -17,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"text/template"
 )
@@ -48,16 +51,126 @@ type tmplVars struct {
 }
 
 var (
-	assets []asset
+	assets  []asset
+	goos    string
+	goarch  string
+	pkgdir  string
+	version string
 )
 
-func main() {
-	log.Info("Building and installing File Maps")
-	bundleWebUI(webuiPath, "pkg/httpd/webui.go")
-	run("go", "install", target)
+func init() {
+	flag.StringVar(&goarch, "goarch", runtime.GOARCH, "Target architecture")
+	flag.StringVar(&goos, "goos", runtime.GOOS, "Target OS")
+	flag.StringVar(&pkgdir, "pkgdir", "", "Pkgdir")
 }
 
-func run(cmd string, args ...string) {
+func main() {
+	flag.Parse()
+	if flag.NArg() == 0 {
+		// no command provided
+		runCommand("install")
+	} else {
+		runCommand(flag.Arg(0))
+	}
+}
+
+func runCommand(cmd string) {
+	switch cmd {
+	case "clean":
+		clean()
+	case "install":
+		install()
+	case "maketar":
+		buildPkg("tar")
+	case "makezip":
+		buildPkg("zip")
+	case "test":
+		test()
+	}
+}
+
+func clean() {
+	os.RemoveAll("build")
+}
+
+func install() {
+	log.Info("Building and installing File Maps")
+	version = readVersion()
+
+	bundleWebUI(webuiPath, "pkg/httpd/webui.go")
+
+	os.Setenv("GOOS", goos)
+	os.Setenv("GOARCH", goarch)
+	if pkgdir != "" {
+		exe("go", "install", "-pkgdir", pkgdir, target)
+	} else {
+		exe("go", "install", target)
+	}
+}
+
+func buildPkg(format string) {
+	version = readVersion()
+	name := fmt.Sprintf("filemaps-%s-%s-%s", goos, goarch, version)
+	targetPath := "build/" + name
+	os.MkdirAll(targetPath, 0755)
+
+	// copy license and readme files
+	exe("cp", "LICENSE", "README.md", targetPath)
+
+	// copy executable
+	binPath := os.Getenv("GOPATH") + "/bin/"
+	if goos != runtime.GOOS || goarch != runtime.GOARCH {
+		binPath = binPath + goos + "_" + goarch + "/"
+	}
+	binPath = binPath + "filemaps"
+	if goos == "windows" {
+		binPath = binPath + ".exe"
+	}
+	exe("cp", binPath, targetPath)
+
+	// create archive
+	os.Chdir("build")
+	a := name
+	if format == "zip" {
+		a = a + ".zip"
+		exe("zip", "-r", a, name)
+	} else if format == "tar" {
+		a = a + ".tar.xz"
+		exe("tar", "cJf", a, name)
+	}
+	log.WithFields(log.Fields{
+		"file": a,
+	}).Info("Archive created")
+}
+
+func test() {
+	exe("go", "test", "-v", "./...")
+}
+
+func readVersion() string {
+	o, err := exeRead("git", "describe", "--always", "--dirty")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("Could not read version using git")
+		return ""
+	}
+	v := string(o)
+	log.WithFields(log.Fields{
+		"version": v,
+	}).Info("Version detected from git")
+	return v
+}
+
+// exeRead executes given command and returns output
+func exeRead(cmd string, args ...string) ([]byte, error) {
+	cmdh := exec.Command(cmd, args...)
+	bs, err := cmdh.CombinedOutput()
+	return bytes.TrimSpace(bs), err
+}
+
+// exe executes given command
+func exe(cmd string, args ...string) {
 	cmdh := exec.Command(cmd, args...)
 	cmdh.Stdout = os.Stdout
 	cmdh.Stderr = os.Stderr
@@ -70,6 +183,7 @@ func run(cmd string, args ...string) {
 	}
 }
 
+// getWalkFunc is walker function for bundling web ui files.
 func getWalkFunc(base string) filepath.WalkFunc {
 	return func(name string, info os.FileInfo, err error) error {
 		if err != nil {
