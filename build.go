@@ -138,6 +138,7 @@ func buildPkg(format string) {
 		a = a + ".tar.xz"
 		exe("tar", "cJf", a, name)
 	}
+	os.Chdir("..")
 	log.WithFields(log.Fields{
 		"file": a,
 	}).Info("Archive created")

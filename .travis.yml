@@ -1,12 +1,12 @@
 language: go
 script:
-- go build.go test
-- go build.go -goos linux -goarch 386 -pkgdir /tmp/filemaps_build maketar
-- go build.go -goos linux -goarch amd64 -pkgdir /tmp/filemaps_build maketar
-- go build.go -goos darwin -goarch 386 -pkgdir /tmp/filemaps_build maketar
-- go build.go -goos darwin -goarch amd64 -pkgdir /tmp/filemaps_build maketar
-- go build.go -goos windows -goarch 386 -pkgdir /tmp/filemaps_build makezip
-- go build.go -goos windows -goarch amd64 -pkgdir /tmp/filemaps_build makezip
+- go run build.go test
+- go run build.go -goos linux -goarch 386 -pkgdir /tmp/filemaps_build maketar
+- go run build.go -goos linux -goarch amd64 -pkgdir /tmp/filemaps_build maketar
+- go run build.go -goos darwin -goarch 386 -pkgdir /tmp/filemaps_build maketar
+- go run build.go -goos darwin -goarch amd64 -pkgdir /tmp/filemaps_build maketar
+- go run build.go -goos windows -goarch 386 -pkgdir /tmp/filemaps_build makezip
+- go run build.go -goos windows -goarch amd64 -pkgdir /tmp/filemaps_build makezip
 deploy:
   provider: releases
   api_key:
