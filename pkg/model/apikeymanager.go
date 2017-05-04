@@ -15,7 +15,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/filemaps/filemaps-backend/pkg/config"
+	"github.com/filemaps/filemaps/pkg/config"
 )
 
 const (

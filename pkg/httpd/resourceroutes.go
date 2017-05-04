@@ -14,7 +14,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/filemaps/filemaps-backend/pkg/model"
+	"github.com/filemaps/filemaps/pkg/model"
 )
 
 func routeResources(r *httprouter.Router, mapURL string) {

@@ -9,7 +9,7 @@ package model
 import (
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/filemaps/filemaps-backend/pkg/fileapp"
+	"github.com/filemaps/filemaps/pkg/fileapp"
 )
 
 // ResourceID is unique in Map, identifies Resource

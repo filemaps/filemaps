@@ -12,8 +12,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 
-	"github.com/filemaps/filemaps-backend/pkg/config"
-	"github.com/filemaps/filemaps-backend/pkg/fileapp"
+	"github.com/filemaps/filemaps/pkg/config"
+	"github.com/filemaps/filemaps/pkg/fileapp"
 )
 
 func routeConfig(r *httprouter.Router) {

@@ -14,8 +14,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/filemaps/filemaps-backend/pkg/config"
-	"github.com/filemaps/filemaps-backend/pkg/model"
+	"github.com/filemaps/filemaps/pkg/config"
+	"github.com/filemaps/filemaps/pkg/model"
 )
 
 // RunHTTP starts HTTP server

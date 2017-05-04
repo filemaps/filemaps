@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	target    = "github.com/filemaps/filemaps-backend/cmd/filemaps"
+	target    = "github.com/filemaps/filemaps/cmd/filemaps"
 	webuiPath = "filemaps-webui/"
 )
 
@@ -109,6 +109,7 @@ func install() {
 }
 
 func buildPkg(format string) {
+	install()
 	version = readVersion()
 	name := fmt.Sprintf("filemaps-%s-%s-%s", goos, goarch, version)
 	targetPath := "build/" + name
@@ -180,7 +181,7 @@ func exe(cmd string, args ...string) {
 		log.WithFields(log.Fields{
 			"cmd":  cmd,
 			"args": args,
-		}).Error(err)
+		}).Fatal(err)
 	}
 }
 

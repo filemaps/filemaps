@@ -1,4 +1,4 @@
-package: github.com/filemaps/filemaps-backend
+package: github.com/filemaps/filemaps
 import:
 - package: github.com/Sirupsen/logrus
   version: ^0.11.4

@@ -17,7 +17,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/filemaps/filemaps-backend/pkg/config"
+	"github.com/filemaps/filemaps/pkg/config"
 )
 
 const (

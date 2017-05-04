@@ -1,12 +1,12 @@
 language: go
 script:
 - go run build.go test
-- go run build.go -goos linux -goarch 386 -pkgdir /tmp/filemaps_build maketar
-- go run build.go -goos linux -goarch amd64 -pkgdir /tmp/filemaps_build maketar
-- go run build.go -goos darwin -goarch 386 -pkgdir /tmp/filemaps_build maketar
-- go run build.go -goos darwin -goarch amd64 -pkgdir /tmp/filemaps_build maketar
-- go run build.go -goos windows -goarch 386 -pkgdir /tmp/filemaps_build makezip
-- go run build.go -goos windows -goarch amd64 -pkgdir /tmp/filemaps_build makezip
+- go run build.go -goos linux -goarch 386 -pkgdir /tmp/filemaps-build maketar
+- go run build.go -goos linux -goarch amd64 -pkgdir /tmp/filemaps-build maketar
+- go run build.go -goos darwin -goarch 386 -pkgdir /tmp/filemaps-build maketar
+- go run build.go -goos darwin -goarch amd64 -pkgdir /tmp/filemaps-build maketar
+- go run build.go -goos windows -goarch 386 -pkgdir /tmp/filemaps-build makezip
+- go run build.go -goos windows -goarch amd64 -pkgdir /tmp/filemaps-build makezip
 deploy:
   provider: releases
   api_key:
@@ -18,4 +18,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    repo: filemaps/filemaps-backend
+    repo: filemaps/filemaps

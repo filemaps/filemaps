@@ -12,7 +12,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 
-	"github.com/filemaps/filemaps-backend/pkg/browser"
+	"github.com/filemaps/filemaps/pkg/browser"
 )
 
 func routeBrowse(r *httprouter.Router) {

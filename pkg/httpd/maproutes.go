@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/filemaps/filemaps-backend/pkg/model"
+	"github.com/filemaps/filemaps/pkg/model"
 )
 
 func routeMaps(r *httprouter.Router) {

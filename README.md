@@ -18,5 +18,5 @@ First, install [glide][2], vendor package management.
 
 File Maps is licensed under the [MPLv2 License][1].
 
-[1]: https://github.com/filemaps/filemaps-backend/blob/master/LICENSE
+[1]: https://github.com/filemaps/filemaps/blob/master/LICENSE
 [2]: https://github.com/Masterminds/glide

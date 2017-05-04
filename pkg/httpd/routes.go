@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"os/user"
 
-	"github.com/filemaps/filemaps-backend/pkg/filemaps"
+	"github.com/filemaps/filemaps/pkg/filemaps"
 )
 
 const (

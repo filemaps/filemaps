@@ -9,7 +9,7 @@ package fileapp
 import (
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/filemaps/filemaps-backend/pkg/config"
+	"github.com/filemaps/filemaps/pkg/config"
 )
 
 type FileAppInfo struct {

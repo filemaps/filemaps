@@ -13,9 +13,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/filemaps/filemaps-backend/pkg/config"
-	"github.com/filemaps/filemaps-backend/pkg/httpd"
-	"github.com/filemaps/filemaps-backend/pkg/model"
+	"github.com/filemaps/filemaps/pkg/config"
+	"github.com/filemaps/filemaps/pkg/httpd"
+	"github.com/filemaps/filemaps/pkg/model"
 )
 
 var (
