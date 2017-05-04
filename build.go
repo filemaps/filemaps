@@ -84,6 +84,8 @@ func runCommand(cmd string) {
 		buildPkg("tar")
 	case "makezip":
 		buildPkg("zip")
+	case "setup":
+		setup()
 	case "test":
 		test()
 	}
@@ -106,6 +108,16 @@ func install() {
 	} else {
 		exe("go", "install", target)
 	}
+}
+
+func setup() {
+	downloadWebUI()
+}
+
+func downloadWebUI() {
+	url := "https://github.com/filemaps/filemaps-webui/releases/download/v0.1.0/filemaps-webui-build.tar.gz"
+	exe("curl", "-L", "-O", url)
+	exe("tar", "xf", "filemaps-webui-build.tar.gz")
 }
 
 func buildPkg(format string) {
