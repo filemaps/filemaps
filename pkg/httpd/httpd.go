@@ -18,6 +18,11 @@ import (
 	"github.com/filemaps/filemaps/pkg/model"
 )
 
+var (
+	// Value of CORS header Access-Control-Allow-Origin
+	CorsAllow string
+)
+
 // RunHTTP starts HTTP server
 func RunHTTP(addr string, webUIPath string) {
 	router := httprouter.New()
@@ -38,6 +43,12 @@ func WriteJSON(w http.ResponseWriter, v interface{}) error {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	// CORS header Access-Control-Allow-Origin for development
+	if CorsAllow != "" {
+		w.Header().Set("Access-Control-Allow-Origin", CorsAllow)
+	}
+
 	w.Write(b)
 	return nil
 }
