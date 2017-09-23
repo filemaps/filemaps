@@ -33,12 +33,10 @@ func routeMaps(r *httprouter.Router) {
 }
 
 // ReadMaps is controller for getting maps.
-// Returns all maps, sorted by Opened field.
+// Returns array of all maps, sorted by Opened field.
 func ReadMaps(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	mm := model.GetMapManager()
-	resp := make(map[string]interface{})
-	resp["maps"] = mm.GetMaps()
-	WriteJSON(w, resp)
+	WriteJSON(w, mm.GetMaps())
 }
 
 // CreateMap creates new Map.
