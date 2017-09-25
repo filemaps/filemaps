@@ -124,10 +124,3 @@ func addrIsTrusted(addr string) bool {
 
 	return false
 }
-
-func writeCORSHeaders(w http.ResponseWriter) {
-	// CORS header Access-Control-Allow-Origin for development
-	if CorsAllow != "" {
-		w.Header().Set("Access-Control-Allow-Origin", CorsAllow)
-	}
-}
