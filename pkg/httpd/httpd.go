@@ -27,7 +27,8 @@ var (
 func RunHTTP(addr string, webUIPath string) {
 	router := httprouter.New()
 	route(router, webUIPath)
-	handler := authMiddleware(router)
+	handler := corsMiddleware(router)
+	handler = authMiddleware(handler)
 	log.WithFields(log.Fields{
 		"transport": "HTTP",
 		"addr":      addr,
@@ -43,12 +44,6 @@ func WriteJSON(w http.ResponseWriter, v interface{}) error {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
-	// CORS header Access-Control-Allow-Origin for development
-	if CorsAllow != "" {
-		w.Header().Set("Access-Control-Allow-Origin", CorsAllow)
-	}
-
 	w.Write(b)
 	return nil
 }
@@ -58,6 +53,17 @@ func WriteJSONError(w http.ResponseWriter, code int, err string) {
 	w.WriteHeader(code)
 	WriteJSON(w, map[string]string{
 		"error": err,
+	})
+}
+
+// corsMiddleware adds Access-Control-Allow-Origin header for CORS.
+func corsMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if CorsAllow != "" {
+			w.Header().Set("Access-Control-Allow-Origin", CorsAllow)
+		}
+		handler.ServeHTTP(w, r)
+		return
 	})
 }
 
@@ -117,4 +123,11 @@ func addrIsTrusted(addr string) bool {
 	}
 
 	return false
+}
+
+func writeCORSHeaders(w http.ResponseWriter) {
+	// CORS header Access-Control-Allow-Origin for development
+	if CorsAllow != "" {
+		w.Header().Set("Access-Control-Allow-Origin", CorsAllow)
+	}
 }
