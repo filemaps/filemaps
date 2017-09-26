@@ -22,6 +22,8 @@ type ProxyMap struct {
 	*Map
 	IsRead  bool
 	Changed bool
+	// resourceIdx is resource index for internal usage
+	resourceIdx map[ResourceID]int // ResourceID -> pos in Resources array
 }
 
 // NewProxyMap creates a new ProxyMap
@@ -118,27 +120,49 @@ func (p *ProxyMap) SetFile(file string) {
 	p.Changed = true
 }
 
+// GetResource returns Resource by ResourceID.
+func (p *ProxyMap) GetResource(id ResourceID) *Resource {
+	return p.Resources[p.resourceIdx[id]]
+}
+
 // AddResource adds new resource to map and assigns ID for it.
 // Returns new ID.
-func (p *ProxyMap) AddResource(r *Resource) int {
+func (p *ProxyMap) AddResource(r *Resource) ResourceID {
 	p.Read()
 	r.ResourceID = p.getNewResourceID()
-	p.Resources[r.ResourceID] = r
+	p.Resources = append(p.Resources, r)
+	// update resource index
+	p.resourceIdx[r.ResourceID] = len(p.Resources) - 1
 	p.Changed = true
 	return r.ResourceID
 }
 
 // DeleteResource deletes resource from map.
-func (p *ProxyMap) DeleteResource(resourceID int) {
+func (p *ProxyMap) DeleteResource(resourceID ResourceID) {
 	p.Read()
-	delete(p.Resources, resourceID)
+	i := p.resourceIdx[resourceID]
+	// swap element with the last one
+	p.Resources[len(p.Resources)-1], p.Resources[i] = p.Resources[i], p.Resources[len(p.Resources)-1]
+	// delete the last element
+	p.Resources = p.Resources[:len(p.Resources)-1]
+	p.refreshResourceIdx()
 	p.Changed = true
 }
 
+// refreshResourceIdx refreshes resource index in var resourceIdx.
+// ResourceID -> Resources array pos
+func (p *ProxyMap) refreshResourceIdx() {
+	p.resourceIdx = make(map[ResourceID]int)
+	for i := 0; i < len(p.Resources); i++ {
+		p.resourceIdx[p.Resources[i].ResourceID] = i
+	}
+}
+
 // getNewResourceID returns unassigned ResourceID.
-func (p *ProxyMap) getNewResourceID() int {
-	max := 0
-	for id := range p.Resources {
+func (p *ProxyMap) getNewResourceID() ResourceID {
+	var max ResourceID
+	max = 0
+	for id := range p.resourceIdx {
 		if id > max {
 			max = id
 		}

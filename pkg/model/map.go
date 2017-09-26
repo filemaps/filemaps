@@ -15,8 +15,8 @@ type MapFileDataV1 struct {
 	Version int `json:"version"`
 	// Title2 is a copy from MapInfo.Title
 	// Title2 is stored to file so it is permanent and shareable
-	Title2    string            `json:"title2"`
-	Resources map[int]*Resource `json:"resources"` // ResourceID -> Resource
+	Title2    string      `json:"title2"`
+	Resources []*Resource `json:"resources"`
 }
 
 // MapFileData struct
@@ -35,7 +35,7 @@ func NewMap(i MapInfo) *Map {
 		MapFileData: MapFileData{
 			Version:   currentMapFileDataVersion,
 			Title2:    i.Title,
-			Resources: make(map[int]*Resource),
+			Resources: make([]*Resource, 0),
 		},
 	}
 	return m

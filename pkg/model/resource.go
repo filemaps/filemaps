@@ -49,7 +49,7 @@ type ResourcePos ResourcePosV1
 
 // ResourceV1 is the first version from Resource struct
 type ResourceV1 struct {
-	ResourceID int          `json:"id"`
+	ResourceID ResourceID   `json:"id"`
 	Type       ResourceType `json:"type"`
 	Path       string       `json:"path"`
 	Pos        ResourcePos  `json:"pos"`

@@ -59,7 +59,7 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		"items": jr.Items,
 	}).Info("Create Resources")
 
-	var ids []int
+	var ids []model.ResourceID
 	for _, item := range jr.Items {
 		rsrc := model.Resource{
 			Type: model.ResourceFile,
@@ -90,7 +90,7 @@ func ReadResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 	}
 
 	pm.Read()
-	writeResource(w, pm.Map, id)
+	writeResource(w, pm.Map, model.ResourceID(id))
 }
 
 // UpdateResource updates existing resource.
@@ -118,15 +118,15 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 
 	pm.Read()
-	var ids []int
+	var ids []model.ResourceID
 	for _, resData := range jr.Resources {
-		rsrc := pm.Resources[resData.ID]
+		rsrc := pm.GetResource(model.ResourceID(resData.ID))
 		if rsrc == nil {
 			WriteJSONError(w, 404, fmt.Sprintf("resource %d not found", resData.ID))
 			return
 		}
 		rsrc.Pos = resData.Pos
-		ids = append(ids, resData.ID)
+		ids = append(ids, rsrc.ResourceID)
 	}
 	pm.Write()
 	writeResources(w, pm.Map, ids)
@@ -157,7 +157,7 @@ func DeleteResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 
 	for _, id := range jr.IDs {
-		pm.DeleteResource(id)
+		pm.DeleteResource(model.ResourceID(id))
 	}
 
 	pm.Write()
@@ -178,7 +178,7 @@ func DeleteResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 		return
 	}
 
-	pm.DeleteResource(id)
+	pm.DeleteResource(model.ResourceID(id))
 	pm.Write()
 
 	fmt.Fprint(w, "{}")
@@ -210,7 +210,7 @@ type ResourcesResponse struct {
 	Resources []*model.Resource `json:"resources"`
 }
 
-func writeResource(w http.ResponseWriter, m *model.Map, id int) {
+func writeResource(w http.ResponseWriter, m *model.Map, id model.ResourceID) {
 	rsrc := m.Resources[id]
 	if rsrc != nil {
 		WriteJSON(w, rsrc)
@@ -219,7 +219,7 @@ func writeResource(w http.ResponseWriter, m *model.Map, id int) {
 	}
 }
 
-func writeResources(w http.ResponseWriter, m *model.Map, ids []int) {
+func writeResources(w http.ResponseWriter, m *model.Map, ids []model.ResourceID) {
 	resp := ResourcesResponse{}
 	for _, id := range ids {
 		rsrc := m.Resources[id]
