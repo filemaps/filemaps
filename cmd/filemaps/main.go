@@ -9,7 +9,9 @@ package main
 import (
 	"flag"
 	log "github.com/Sirupsen/logrus"
+	colorable "github.com/mattn/go-colorable"
 	"math/rand"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -32,6 +34,11 @@ func init() {
 		FullTimestamp:   true,
 		TimestampFormat: "15:04:05.000",
 	})
+
+	// colors for windows
+	if runtime.GOOS == "windows" {
+		log.SetOutput(colorable.NewColorableStdout())
+	}
 
 	flag.BoolVar(&noBrowser, "no-browser", false, "Do not open browser")
 	flag.IntVar(&port, "port", 8338, "Port to listen to")
