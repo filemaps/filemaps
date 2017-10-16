@@ -72,7 +72,7 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 	pm.Write()
 
-	writeResources(w, pm.Map, ids)
+	writeResources(w, pm, ids)
 }
 
 // ReadResource is controller for getting a resource.
@@ -90,7 +90,7 @@ func ReadResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 	}
 
 	pm.Read()
-	writeResource(w, pm.Map, model.ResourceID(id))
+	writeResource(w, pm, model.ResourceID(id))
 }
 
 // UpdateResource updates existing resource.
@@ -102,7 +102,7 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 
 	type ResourceData struct {
-		ID  int               `json:"id"`
+		ID  model.ResourceID  `json:"id"`
 		Pos model.ResourcePos `json:"pos"`
 	}
 	type JSONRequest struct {
@@ -120,7 +120,7 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	pm.Read()
 	var ids []model.ResourceID
 	for _, resData := range jr.Resources {
-		rsrc := pm.GetResource(model.ResourceID(resData.ID))
+		rsrc := pm.GetResource(resData.ID)
 		if rsrc == nil {
 			WriteJSONError(w, 404, fmt.Sprintf("resource %d not found", resData.ID))
 			return
@@ -129,7 +129,8 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		ids = append(ids, rsrc.ResourceID)
 	}
 	pm.Write()
-	writeResources(w, pm.Map, ids)
+
+	writeResources(w, pm, ids)
 }
 
 // DeleteResources is controller for deleting multiple resources.
@@ -210,8 +211,8 @@ type ResourcesResponse struct {
 	Resources []*model.Resource `json:"resources"`
 }
 
-func writeResource(w http.ResponseWriter, m *model.Map, id model.ResourceID) {
-	rsrc := m.Resources[id]
+func writeResource(w http.ResponseWriter, pm *model.ProxyMap, id model.ResourceID) {
+	rsrc := pm.GetResource(id)
 	if rsrc != nil {
 		WriteJSON(w, rsrc)
 	} else {
@@ -219,10 +220,10 @@ func writeResource(w http.ResponseWriter, m *model.Map, id model.ResourceID) {
 	}
 }
 
-func writeResources(w http.ResponseWriter, m *model.Map, ids []model.ResourceID) {
+func writeResources(w http.ResponseWriter, pm *model.ProxyMap, ids []model.ResourceID) {
 	resp := ResourcesResponse{}
 	for _, id := range ids {
-		rsrc := m.Resources[id]
+		rsrc := pm.GetResource(id)
 		if rsrc != nil {
 			resp.Resources = append(resp.Resources, rsrc)
 		} else {

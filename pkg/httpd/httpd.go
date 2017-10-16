@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
 	"net"
 	"net/http"
 	"strings"
@@ -27,7 +28,10 @@ var (
 func RunHTTP(addr string, webUIPath string) {
 	router := httprouter.New()
 	route(router, webUIPath)
-	handler := corsMiddleware(router)
+	corsHandler := cors.New(cors.Options{
+		AllowedMethods: []string{"GET", "POST", "PUT", "OPTIONS"},
+	})
+	handler := corsHandler.Handler(router)
 	handler = authMiddleware(handler)
 	log.WithFields(log.Fields{
 		"transport": "HTTP",
@@ -53,17 +57,6 @@ func WriteJSONError(w http.ResponseWriter, code int, err string) {
 	w.WriteHeader(code)
 	WriteJSON(w, map[string]string{
 		"error": err,
-	})
-}
-
-// corsMiddleware adds Access-Control-Allow-Origin header for CORS.
-func corsMiddleware(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if CorsAllow != "" {
-			w.Header().Set("Access-Control-Allow-Origin", CorsAllow)
-		}
-		handler.ServeHTTP(w, r)
-		return
 	})
 }
 

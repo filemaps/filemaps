@@ -99,6 +99,7 @@ func (p *ProxyMap) ParseJSON(r io.Reader) error {
 	}
 
 	p.Map.MapFileData = *data
+	p.refreshResourceIdx()
 	return nil
 }
 
