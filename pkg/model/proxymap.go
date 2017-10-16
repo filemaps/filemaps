@@ -60,6 +60,13 @@ func (p *ProxyMap) Read() error {
 	err := p.readFile(path)
 	if err == nil {
 		p.IsRead = true
+		if p.Title != p.Title2 {
+			log.WithFields(log.Fields{
+				"id":     p.ID,
+				"title":  p.Title,
+				"title2": p.Title2,
+			}).Error("Map.Title (db) and Map.Title2 (.filemap) mismatch")
+		}
 		// override title, use JSON title
 		p.Title = p.Title2
 	}
