@@ -200,8 +200,12 @@ func OpenResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 	}
 
 	pm.Read()
-	rsrc := pm.Resources[id]
-	rsrc.Open()
+	rsrc := pm.GetResource(model.ResourceID(id))
+	if rsrc != nil {
+		rsrc.Open()
+	} else {
+		WriteJSONError(w, 404, "resource not found")
+	}
 
 	fmt.Fprint(w, "{}")
 }
