@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/filemaps/filemaps/pkg/config"
+	"github.com/filemaps/filemaps/pkg/filemaps"
 	"github.com/filemaps/filemaps/pkg/httpd"
 	"github.com/filemaps/filemaps/pkg/model"
 )
@@ -44,12 +45,20 @@ func init() {
 	flag.BoolVar(&httpd.CORSEnabled, "cors", false, "Enable CORS")
 	flag.IntVar(&port, "port", 8338, "Port to listen to")
 	flag.StringVar(&webUIPath, "webui", "", "Path of Web UI files")
+	flag.BoolVar(&filemaps.DevelopmentMode, "dev", false, "Development mode")
 }
 
 func main() {
 	log.Info("File Maps starting")
 
 	flag.Parse()
+
+	if filemaps.DevelopmentMode {
+		// enable no-browser and cors flags in dev mode
+		noBrowser = true
+		httpd.CORSEnabled = true
+		log.Info("Development mode enabled")
+	}
 
 	if err := config.EnsureDir(); err != nil {
 		log.WithFields(log.Fields{
