@@ -7,8 +7,6 @@
 package httpd
 
 import (
-	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"os/user"
@@ -35,8 +33,7 @@ func route(r *httprouter.Router, webUIPath string) {
 
 // Index is controller for root URL
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	log.Info("root request")
-	fmt.Fprint(w, "Welcome!\n")
+	http.Redirect(w, r, UIURL+"/", http.StatusTemporaryRedirect)
 }
 
 // Info is controller for information

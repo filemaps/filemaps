@@ -111,9 +111,6 @@ func install() {
 		args = append(args, pkgdir)
 	}
 	args = append(args, target)
-	log.WithFields(log.Fields{
-		"args": args,
-	}).Info("args")
 	exe("go", args...)
 }
 
