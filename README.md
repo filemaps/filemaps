@@ -14,14 +14,6 @@ First, install [glide][2], vendor package management.
     glide install
     go run build.go
 
-## Development
-
-### Development with Angular CLI
-
-1. `ng serve --base-href /ui/`
-2. `filemaps -dev`
-3. Open your browser on http://localhost:4200/ui
-
 ## License
 
 File Maps is licensed under the [MPLv2 License][1].
