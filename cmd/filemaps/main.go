@@ -41,9 +41,9 @@ func init() {
 	}
 
 	flag.BoolVar(&noBrowser, "no-browser", false, "Do not open browser")
+	flag.BoolVar(&httpd.CORSEnabled, "cors", false, "Enable CORS")
 	flag.IntVar(&port, "port", 8338, "Port to listen to")
 	flag.StringVar(&webUIPath, "webui", "", "Path of Web UI files")
-	flag.StringVar(&httpd.CorsAllow, "cors-allow-origin", "", "Value for CORS header Access-Control-Allow-Origin")
 }
 
 func main() {

@@ -20,19 +20,29 @@ import (
 )
 
 var (
-	// Value of CORS header Access-Control-Allow-Origin
-	CorsAllow string
+	CORSEnabled bool
 )
 
 // RunHTTP starts HTTP server
 func RunHTTP(addr string, webUIPath string) {
+	var handler http.Handler
+
 	router := httprouter.New()
 	route(router, webUIPath)
-	corsHandler := cors.New(cors.Options{
-		AllowedMethods: []string{"GET", "POST", "PUT", "OPTIONS"},
-	})
-	handler := corsHandler.Handler(router)
+
+	handler = router
+
+	// CORS middleware
+	if CORSEnabled {
+		corsHandler := cors.New(cors.Options{
+			AllowedMethods: []string{"GET", "POST", "PUT", "OPTIONS"},
+		})
+		handler = corsHandler.Handler(handler)
+	}
+
+	// authentication middleware
 	handler = authMiddleware(handler)
+
 	log.WithFields(log.Fields{
 		"transport": "HTTP",
 		"addr":      addr,
