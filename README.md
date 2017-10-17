@@ -19,7 +19,7 @@ First, install [glide][2], vendor package management.
 ### Development with Angular CLI
 
 1. `ng serve --base-href /ui/`
-2. `filemaps -no-browser -cors-allow-origin "*"`
+2. `filemaps -dev`
 3. Open your browser on http://localhost:4200/ui
 
 ## License
