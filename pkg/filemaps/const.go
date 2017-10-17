@@ -6,11 +6,8 @@
 
 package filemaps
 
-const (
-	// Version defines current File Maps version
-	Version = "alpha"
-)
-
 var (
 	DevelopmentMode bool
+	// Version defines current File Maps version
+	Version string
 )

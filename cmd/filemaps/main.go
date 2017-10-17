@@ -8,6 +8,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	colorable "github.com/mattn/go-colorable"
 	"math/rand"
@@ -22,9 +23,11 @@ import (
 )
 
 var (
-	noBrowser bool
-	port      int
-	webUIPath string
+	noBrowser   bool
+	port        int
+	Version     = "unknown-dev"
+	webUIPath   string
+	showVersion bool
 )
 
 func init() {
@@ -41,17 +44,26 @@ func init() {
 		log.SetOutput(colorable.NewColorableStdout())
 	}
 
-	flag.BoolVar(&noBrowser, "no-browser", false, "Do not open browser")
 	flag.BoolVar(&httpd.CORSEnabled, "cors", false, "Enable CORS")
-	flag.IntVar(&port, "port", 8338, "Port to listen to")
-	flag.StringVar(&webUIPath, "webui", "", "Path of Web UI files")
 	flag.BoolVar(&filemaps.DevelopmentMode, "dev", false, "Development mode")
+	flag.BoolVar(&noBrowser, "no-browser", false, "Do not open browser")
+	flag.IntVar(&port, "port", 8338, "Port to listen to")
+	flag.BoolVar(&showVersion, "version", false, "Show version and exit")
+	flag.StringVar(&webUIPath, "webui", "", "Path of Web UI files")
 }
 
 func main() {
-	log.Info("File Maps starting")
-
+	filemaps.Version = Version
 	flag.Parse()
+
+	if showVersion {
+		fmt.Println(Version)
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"version": Version,
+	}).Info("File Maps starting")
 
 	if filemaps.DevelopmentMode {
 		// enable no-browser and cors flags in dev mode

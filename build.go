@@ -104,11 +104,17 @@ func install() {
 
 	os.Setenv("GOOS", goos)
 	os.Setenv("GOARCH", goarch)
+
+	args := []string{"install", "-ldflags", ldflags()}
 	if pkgdir != "" {
-		exe("go", "install", "-pkgdir", pkgdir, target)
-	} else {
-		exe("go", "install", target)
+		args = append(args, "-pkgdir")
+		args = append(args, pkgdir)
 	}
+	args = append(args, target)
+	log.WithFields(log.Fields{
+		"args": args,
+	}).Info("args")
+	exe("go", args...)
 }
 
 func setup() {
@@ -160,6 +166,13 @@ func buildPkg(format string) {
 
 func test() {
 	exe("go", "test", "-v", "./...")
+}
+
+// ldflags sets variables for building process, such as version number
+func ldflags() string {
+	b := new(bytes.Buffer)
+	fmt.Fprintf(b, "-X main.Version=%s", version)
+	return b.String()
 }
 
 func readVersion() string {
