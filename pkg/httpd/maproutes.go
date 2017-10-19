@@ -83,7 +83,7 @@ func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 	mm.Write()
-	writeMap(w, pm.ID)
+	writeMap(w, pm)
 }
 
 // ImportMap imports existing Map.
@@ -119,7 +119,7 @@ func ImportMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 	mm.Write()
-	writeMap(w, pm.ID)
+	writeMap(w, pm)
 }
 
 // ReadMap is controller for getting a map.
@@ -129,7 +129,9 @@ func ReadMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		WriteJSONError(w, 400, "map id must be integer")
 		return
 	}
-	writeMap(w, id)
+	mm := model.GetMapManager()
+	pm := mm.GetProxyMap(id)
+	writeMap(w, pm)
 }
 
 // UpdateMap updates existing Map.
@@ -165,7 +167,7 @@ func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	pm.SetFile(jr.File)
 	pm.Write()
 
-	writeMap(w, pm.ID)
+	writeMap(w, pm)
 }
 
 // DeleteMap is controller for deleting a map.
@@ -190,7 +192,7 @@ func findProxyMap(param string) *model.ProxyMap {
 	}
 
 	mm := model.GetMapManager()
-	pm := mm.Maps[mapID]
+	pm := mm.GetProxyMap(mapID)
 	if pm == nil {
 		return nil
 	}
@@ -198,11 +200,11 @@ func findProxyMap(param string) *model.ProxyMap {
 	return pm
 }
 
-// writeMap writes Map to JSON response.
-func writeMap(w http.ResponseWriter, id int) {
-	mm := model.GetMapManager()
-	m := mm.GetMap(id)
-	if m != nil {
+// writeMap writes ProxyMap to JSON response.
+func writeMap(w http.ResponseWriter, pm *model.ProxyMap) {
+	if pm != nil {
+		pm.Read()
+		m := pm.Map
 		WriteJSON(w, m)
 	} else {
 		WriteJSONError(w, 404, "map not found")

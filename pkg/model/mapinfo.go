@@ -20,7 +20,7 @@ type MapInfo struct {
 }
 
 // MapInfos is a collection of MapInfo pointers.
-type MapInfos []*MapInfo
+type MapInfos []MapInfo
 
 // Implementation of sort.Interface for MapInfos.
 func (slice MapInfos) Len() int {

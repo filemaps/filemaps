@@ -33,8 +33,9 @@ var (
 
 // MapManagerV1 is first version of MapManager struct.
 type MapManagerV1 struct {
-	Version int               `json:"version"`
-	Maps    map[int]*ProxyMap `json:"maps"` // MapID -> Map
+	Version   int               `json:"version"`
+	MapInfos  MapInfos          `json:"maps"`
+	proxyMaps map[int]*ProxyMap // Map ID -> proxyMap
 }
 
 // MapManager manages Maps, reads and stores them.
@@ -44,8 +45,9 @@ type MapManager MapManagerV1
 // CreateMapManager creates MapManager singleton instance.
 func CreateMapManager() (*MapManager, error) {
 	mapManager = &MapManager{
-		Version: MapManagerVersion,
-		Maps:    make(map[int]*ProxyMap),
+		Version:   MapManagerVersion,
+		MapInfos:  make([]MapInfo, 0),
+		proxyMaps: make(map[int]*ProxyMap),
 	}
 	err := mapManager.Read()
 	return mapManager, err
@@ -61,29 +63,16 @@ func GetMapManager() *MapManager {
 
 // GetMaps returns MapInfos.
 func (mm *MapManager) GetMaps() MapInfos {
-	var maps MapInfos
-	for _, pm := range mm.Maps {
-		maps = append(maps, &pm.Map.MapInfo)
-	}
-	sort.Sort(maps)
-	return maps
-}
-
-// GetMap returns given map.
-func (mm *MapManager) GetMap(id int) *Map {
-	m := mm.Maps[id]
-	if m != nil {
-		m.Read()
-		return m.Map
-	}
-	return nil
+	sort.Sort(mm.MapInfos)
+	return mm.MapInfos
 }
 
 // AddMap adds new Map and assigns new ID for it.
-func (mm *MapManager) AddMap(fm MapInfo) (*ProxyMap, error) {
-	pm := NewProxyMap(fm)
-	pm.ID = mm.getNewMapID()
-	mm.Maps[pm.ID] = pm
+func (mm *MapManager) AddMap(mi MapInfo) (*ProxyMap, error) {
+	mi.ID = mm.getNewMapID()
+	pm := NewProxyMap(mi)
+	mm.MapInfos = append(mm.MapInfos, mi)
+	mm.proxyMaps[mi.ID] = pm
 	return pm, nil
 }
 
@@ -112,26 +101,56 @@ func (mm *MapManager) ImportMap(path string) (*ProxyMap, error) {
 	return mm.AddMap(info)
 }
 
-func (mm *MapManager) findMapByFile(base string, file string) *ProxyMap {
-	for _, pm := range mm.Maps {
-		if pm.Base == base && pm.File == file {
+func (mm *MapManager) GetProxyMap(mapID int) *ProxyMap {
+	// check if it is already in proxyMaps
+	if mm.proxyMaps[mapID] != nil {
+		return mm.proxyMaps[mapID]
+	}
+
+	// check if it is in mapInfos
+	for _, mi := range mm.MapInfos {
+		if mi.ID == mapID {
+			// found, store it to proxyMaps
+			pm := NewProxyMap(mi)
+			mm.proxyMaps[mi.ID] = pm
 			return pm
+		}
+	}
+
+	// not found
+	return nil
+}
+
+func (mm *MapManager) findMapByFile(base string, file string) *ProxyMap {
+	for _, mi := range mm.MapInfos {
+		if mi.Base == base && mi.File == file {
+			return mm.GetProxyMap(mi.ID)
 		}
 	}
 	return nil
 }
 
 // DeleteMap deletes Map with given ID.
-func (mm *MapManager) DeleteMap(mapID int) {
-	delete(mm.Maps, mapID)
+func (mm *MapManager) DeleteMap(mapID int) bool {
+	delete(mm.proxyMaps, mapID)
+
+	for i, mi := range mm.MapInfos {
+		if mi.ID == mapID {
+			// delete from slice by swapping to last element
+			mm.MapInfos[i] = mm.MapInfos[len(mm.MapInfos)-1]
+			mm.MapInfos = mm.MapInfos[:len(mm.MapInfos)-1]
+			return true
+		}
+	}
+	return false
 }
 
 // getNewMapID returns unassigned MapID.
 func (mm *MapManager) getNewMapID() int {
 	max := 0
-	for id := range mm.Maps {
-		if id > max {
-			max = id
+	for _, mi := range mm.MapInfos {
+		if mi.ID > max {
+			max = mi.ID
 		}
 	}
 	return max + 1
@@ -142,7 +161,7 @@ func (m *MapManager) Write() error {
 	return m.writeFile(m.getFilePath())
 }
 
-// getFilePath returns full path for API keys file
+// getFilePath returns full path for maps storage file
 func (m *MapManager) getFilePath() string {
 	return filepath.Join(config.GetDir(), MapsFileName)
 }
@@ -198,7 +217,9 @@ func (m *MapManager) ParseJSON(r io.Reader) error {
 		return err
 	}
 
-	m.Maps = data.Maps
+	m.MapInfos = data.MapInfos
+	m.proxyMaps = make(map[int]*ProxyMap)
+
 	return nil
 }
 
