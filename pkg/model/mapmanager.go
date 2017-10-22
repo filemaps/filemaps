@@ -145,6 +145,27 @@ func (mm *MapManager) DeleteMap(mapID int) bool {
 	return false
 }
 
+// UpdateMap updates information that goes both to maps.json and map.filemap
+func (mm *MapManager) UpdateMap(mapID int, title string, base string, file string) {
+	// update mm.ProxyMap
+	pm := mm.proxyMaps[mapID]
+	pm.Title = title
+	pm.Title2 = title
+	pm.Base = base
+	pm.File = file
+	pm.Changed = true
+
+	// update mm.MapInfos
+	for i, mi := range mm.MapInfos {
+		if mi.ID == mapID {
+			mm.MapInfos[i].Title = title
+			mm.MapInfos[i].Base = base
+			mm.MapInfos[i].File = file
+			break
+		}
+	}
+}
+
 // getNewMapID returns unassigned MapID.
 func (mm *MapManager) getNewMapID() int {
 	max := 0

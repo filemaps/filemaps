@@ -113,6 +113,7 @@ func (p *ProxyMap) ParseJSON(r io.Reader) error {
 // SetTitle sets map title.
 func (p *ProxyMap) SetTitle(title string) {
 	p.Title = title
+	p.Title2 = title
 	p.Changed = true
 }
 

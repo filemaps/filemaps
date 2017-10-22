@@ -162,10 +162,10 @@ func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	pm.SetTitle(jr.Title)
-	pm.SetBase(jr.Base)
-	pm.SetFile(jr.File)
+	mm := model.GetMapManager()
+	mm.UpdateMap(pm.ID, jr.Title, jr.Base, jr.File)
 	pm.Write()
+	mm.Write()
 
 	writeMap(w, pm)
 }
