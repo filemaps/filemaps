@@ -1,4 +1,6 @@
 language: go
+before_script:
+- rm -rf filemaps-webui*
 script:
 - go run build.go test
 - go run build.go setup

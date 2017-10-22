@@ -29,7 +29,7 @@ import (
 const (
 	target       = "github.com/filemaps/filemaps/cmd/filemaps"
 	webuiPath    = "filemaps-webui/"
-	webuiVersion = "0.2.1"
+	webuiVersion = "0.3.0"
 )
 
 var tmpl = template.Must(template.New("assets").Parse(`package httpd
@@ -129,6 +129,7 @@ func setup() {
 
 func downloadWebUI() {
 	url := "https://github.com/filemaps/filemaps-webui/releases/download/v" + webuiVersion + "/filemaps-webui-build.tar.gz"
+	log.Info("Downloading " + url)
 	exe("curl", "-L", "-O", url)
 	exe("tar", "xf", "filemaps-webui-build.tar.gz")
 }
