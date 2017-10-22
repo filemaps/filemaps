@@ -9,7 +9,9 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/md5"
 	"encoding/base64"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
@@ -36,15 +38,22 @@ import "encoding/base64"
 
 func init() {
 	var a = make(map[string][]byte, {{.Assets | len}})
+	var e = make(map[string]string, {{.Assets | len}})
 {{range $asset := .Assets}}
-	a["{{$asset.Name}}"], _ = base64.StdEncoding.DecodeString("{{$asset.Content}}"){{end}}
+	a["{{$asset.Name}}"], _ = base64.StdEncoding.DecodeString("{{$asset.Content}}")
+	e["{{$asset.Name}}"] = "\"{{$asset.ETag}}\""{{end}}
+
 	setAssets(a)
+	setETags(e)
 }
 `))
 
 type asset struct {
 	Name    string
 	Content string
+	// Entity tag for better caching
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+	ETag string
 }
 
 type tmplVars struct {
@@ -236,9 +245,12 @@ func getWalkFunc(base string) filepath.WalkFunc {
 
 			// create asset struct and append it to vars
 			name, _ = filepath.Rel(base, name)
+			hasher := md5.New()
+			hasher.Write(buf.Bytes())
 			assets = append(assets, asset{
 				Name:    filepath.ToSlash(name),
 				Content: base64.StdEncoding.EncodeToString(buf.Bytes()),
+				ETag:    hex.EncodeToString(hasher.Sum(nil)),
 			})
 		}
 		return nil

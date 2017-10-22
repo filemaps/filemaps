@@ -22,6 +22,7 @@ import (
 
 var (
 	assets map[string][]byte
+	eTags  map[string]string
 )
 
 func routeWebUI(r *httprouter.Router, webUIPath string) {
@@ -40,6 +41,13 @@ func webUI(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	path := ps.ByName("filepath")[1:]
 	if path == "" {
 		path = "index.html"
+	}
+
+	// use ETag for efficient caching
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+	if r.Header.Get("If-None-Match") == eTags[path] {
+		w.WriteHeader(304)
+		return
 	}
 
 	bs, ok := assets[path]
@@ -64,6 +72,8 @@ func webUI(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		gr.Close()
 	}
 	w.Header().Set("Content-Length", strconv.Itoa(len(bs)))
+	w.Header().Set("ETag", eTags[path])
+
 	w.Write(bs)
 }
 
@@ -89,4 +99,10 @@ func getContentType(file string) string {
 // Called by auto-generated webui.go
 func setAssets(a map[string][]byte) {
 	assets = a
+}
+
+// setETags sets entity tags for static assets.
+// Called by auto-generated webui.go
+func setETags(a map[string]string) {
+	eTags = a
 }
