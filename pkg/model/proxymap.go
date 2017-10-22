@@ -9,12 +9,13 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/filemaps/filemaps/pkg/fileapp"
 )
 
 // ProxyMap is virtual proxy for Map struct
@@ -110,23 +111,9 @@ func (p *ProxyMap) ParseJSON(r io.Reader) error {
 	return nil
 }
 
-// SetTitle sets map title.
-func (p *ProxyMap) SetTitle(title string) {
-	p.Title = title
-	p.Title2 = title
-	p.Changed = true
-}
-
-// SetBase sets base path for map.
-func (p *ProxyMap) SetBase(base string) {
-	p.Base = base
-	p.Changed = true
-}
-
-// SetFile sets filename for FileMap JSON file.
-func (p *ProxyMap) SetFile(file string) {
-	p.File = file
-	p.Changed = true
+func (p *ProxyMap) OpenResource(r *Resource) {
+	path := filepath.Join(p.Base, r.Path)
+	fileapp.Open(path)
 }
 
 // GetResource returns Resource by ResourceID.

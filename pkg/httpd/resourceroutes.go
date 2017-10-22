@@ -12,6 +12,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"github.com/filemaps/filemaps/pkg/model"
@@ -61,9 +62,18 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 
 	var ids []model.ResourceID
 	for _, item := range jr.Items {
+		// convert absolute path to relative
+		path, err := filepath.Rel(pm.Base, item.Path)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"basepath": pm.Base,
+				"targpath": item.Path,
+			}).Error("Could not make relative path")
+			path = item.Path
+		}
 		rsrc := model.Resource{
 			Type: model.ResourceFile,
-			Path: item.Path,
+			Path: path,
 			Pos:  item.Pos,
 		}
 
@@ -202,7 +212,7 @@ func OpenResource(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 	pm.Read()
 	rsrc := pm.GetResource(model.ResourceID(id))
 	if rsrc != nil {
-		rsrc.Open()
+		pm.OpenResource(rsrc)
 	} else {
 		WriteJSONError(w, 404, "resource not found")
 	}
