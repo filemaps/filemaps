@@ -1,8 +1,7 @@
-// Copyright (C) 2017 File Maps Backend Authors.
+// Copyright (c) 2017, CodeBoy. All rights reserved.
 //
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// This Source Code Form is subject to the terms of the
+// license that can be found in the LICENSE file.
 
 package main
 
@@ -60,6 +59,10 @@ func main() {
 		fmt.Println(Version)
 		return
 	}
+
+	fmt.Println("File Maps " + Version)
+	fmt.Println("Copyright (c) 2017, CodeBoy")
+	fmt.Println("All rights reserved.")
 
 	log.WithFields(log.Fields{
 		"version": Version,
