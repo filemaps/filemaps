@@ -17,11 +17,11 @@ First, install [glide][2], vendor package management.
 
 File Maps may be used freely for non-commercial purposes.
 
-### Non-commercial use
+### Non-commercial Use
 
 [Terms and conditions][1]
 
-### Commercial use
+### Commercial Use
 
 Contact [CodeBoy][3] for purchasing a commercial license.
 
