@@ -13,6 +13,11 @@ import (
 	"github.com/filemaps/filemaps/pkg/config"
 )
 
+const (
+	// argSeparator separates arguments from custom command string
+	argSeparator = ","
+)
+
 func init() {
 	register(NewCustom())
 }
@@ -37,7 +42,7 @@ func (a *Custom) open(path string) int {
 	}).Info("Custom: open")
 
 	cfg := config.GetConfiguration()
-	cmd := strings.Split(cfg.TextEditorCustom1Cmd, " ")
+	cmd := strings.Split(cfg.TextEditorCustom1Cmd, argSeparator)
 	cmd = append(cmd, path)
 
 	out, err := exec.Command(cmd[0], cmd[1:]...).Output()
