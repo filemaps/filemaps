@@ -145,13 +145,21 @@ func (mm *MapManager) DeleteMap(mapID int) bool {
 }
 
 // UpdateMap updates information that goes both to maps.json and map.filemap
-func (mm *MapManager) UpdateMap(mapID int, title string, base string, file string) {
+func (mm *MapManager) UpdateMap(
+	mapID int,
+	title string,
+	description string,
+	base string,
+	file string,
+	exclude []string) {
 	// update mm.ProxyMap
 	pm := mm.proxyMaps[mapID]
 	pm.Title = title
 	pm.Title2 = title
+	pm.Description = description
 	pm.Base = base
 	pm.File = file
+	pm.Exclude = exclude
 	pm.Changed = true
 
 	// update mm.MapInfos

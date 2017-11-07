@@ -43,9 +43,11 @@ func ReadMaps(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 // CreateMap creates new Map.
 func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	type JSONRequest struct {
-		Title string `json:"title"`
-		Base  string `json:"base"`
-		File  string `json:"file"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Base        string `json:"base"`
+		File        string `json:"file"`
+		Template    string `json:"template"`
 	}
 	var jr JSONRequest
 	d := json.NewDecoder(r.Body)
@@ -57,9 +59,11 @@ func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	log.WithFields(log.Fields{
-		"title": jr.Title,
-		"base":  jr.Base,
-		"file":  jr.File,
+		"title":       jr.Title,
+		"description": jr.Description,
+		"base":        jr.Base,
+		"file":        jr.File,
+		"template":    jr.Template,
 	}).Info("Create Map")
 
 	info := model.MapInfo{
@@ -74,6 +78,7 @@ func CreateMap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		WriteJSONError(w, 500, "could not add map")
 		return
 	}
+	pm.Description = jr.Description
 	if err = pm.Write(); err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
@@ -136,9 +141,11 @@ func ReadMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 // UpdateMap updates existing Map.
 func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	type JSONRequest struct {
-		Title string `json:"title"`
-		Base  string `json:"base"`
-		File  string `json:"file"`
+		Title       string   `json:"title"`
+		Description string   `json:"description"`
+		Base        string   `json:"base"`
+		File        string   `json:"file"`
+		Exclude     []string `json:"exclude"`
 	}
 	var jr JSONRequest
 	d := json.NewDecoder(r.Body)
@@ -150,9 +157,11 @@ func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	log.WithFields(log.Fields{
-		"title": jr.Title,
-		"base":  jr.Base,
-		"file":  jr.File,
+		"title":       jr.Title,
+		"description": jr.Description,
+		"base":        jr.Base,
+		"file":        jr.File,
+		"exclude":     jr.Exclude,
 	}).Info("Update Map")
 
 	pm := findProxyMap(ps.ByName("mapid"))
@@ -162,7 +171,7 @@ func UpdateMap(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	mm := model.GetMapManager()
-	mm.UpdateMap(pm.ID, jr.Title, jr.Base, jr.File)
+	mm.UpdateMap(pm.ID, jr.Title, jr.Description, jr.Base, jr.File, jr.Exclude)
 	pm.Write()
 	mm.Write()
 
