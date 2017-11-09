@@ -15,6 +15,7 @@ import (
 	"strconv"
 
 	"github.com/filemaps/filemaps/pkg/model"
+	"github.com/filemaps/filemaps/pkg/scanner"
 )
 
 func routeResources(r *httprouter.Router, mapURL string) {
@@ -26,13 +27,13 @@ func routeResources(r *httprouter.Router, mapURL string) {
 	r.GET(resourceURL, ReadResource)
 	// DELETE with JSON request body is problematic,
 	// using POST for multi-delete
-	r.POST(resourceURL, DeleteResources)
+	r.POST(resourceURL, ScanOrDeleteResources)
 	r.DELETE(resourceURL, DeleteResource)
 
 	r.GET(resourceURL+"/open", OpenResource)
 }
 
-// CreateResource creates new Resources.
+// CreateResources creates new Resources.
 func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	pm := findProxyMap(ps.ByName("mapid"))
 	if pm == nil {
@@ -139,6 +140,62 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 	pm.Write()
 
+	writeResources(w, pm, ids)
+}
+
+func ScanOrDeleteResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	if ps.ByName("rid") == "scan" {
+		ScanResources(w, r, ps)
+	} else {
+		DeleteResources(w, r, ps)
+	}
+}
+
+// ScanResources creates new Resources.
+func ScanResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pm := findProxyMap(ps.ByName("mapid"))
+	if pm == nil {
+		WriteJSONError(w, 404, "map not found")
+		return
+	}
+
+	type JSONRequest struct {
+		Path    string   `json:"path"`
+		Exclude []string `json:"exclude"`
+	}
+	var jr JSONRequest
+	err := json.NewDecoder(r.Body).Decode(&jr)
+	r.Body.Close()
+	if err != nil {
+		WriteJSONError(w, 400, "bad request")
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"path":    jr.Path,
+		"exclude": jr.Exclude,
+	}).Info("Scan Resources")
+
+	files := scanner.Scan(jr.Path, pm.Base, jr.Exclude)
+	var ids []model.ResourceID
+	for _, path := range files {
+		// convert absolute path to relative
+		path, err := filepath.Rel(pm.Base, path)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"basepath": pm.Base,
+				"targpath": path,
+			}).Error("Could not make relative path")
+		}
+		rsrc := model.Resource{
+			Type: model.ResourceFile,
+			Path: path,
+			Pos:  model.ResourcePos{X: 0, Y: 0, Z: 0},
+		}
+
+		rID := pm.AddResource(&rsrc)
+		ids = append(ids, rID)
+	}
 	writeResources(w, pm, ids)
 }
 
