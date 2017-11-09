@@ -120,6 +120,16 @@ func (p *ProxyMap) GetResource(id ResourceID) *Resource {
 	return p.Resources[p.resourceIdx[id]]
 }
 
+// GetResourceByPath returns Resource having given path or nil.
+func (p *ProxyMap) GetResourceByPath(path string) *Resource {
+	for _, res := range p.Resources {
+		if path == res.Path {
+			return res
+		}
+	}
+	return nil
+}
+
 // AddResource adds new resource to map and assigns ID for it.
 // Returns new ID.
 func (p *ProxyMap) AddResource(r *Resource) ResourceID {

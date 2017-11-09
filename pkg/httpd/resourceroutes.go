@@ -10,9 +10,11 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
+	"math/rand"
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/filemaps/filemaps/pkg/model"
 	"github.com/filemaps/filemaps/pkg/scanner"
@@ -176,8 +178,14 @@ func ScanResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 		"exclude": jr.Exclude,
 	}).Info("Scan Resources")
 
+	pm.Read()
+
+	pm.Exclude = jr.Exclude
+	pm.Changed = true
+
 	files := scanner.Scan(jr.Path, pm.Base, jr.Exclude)
 	var ids []model.ResourceID
+	rndm := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for _, path := range files {
 		// convert absolute path to relative
 		path, err := filepath.Rel(pm.Base, path)
@@ -185,17 +193,24 @@ func ScanResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 			log.WithFields(log.Fields{
 				"basepath": pm.Base,
 				"targpath": path,
-			}).Error("Could not make relative path")
-		}
-		rsrc := model.Resource{
-			Type: model.ResourceFile,
-			Path: path,
-			Pos:  model.ResourcePos{X: 0, Y: 0, Z: 0},
+			}).Error("ScanResources: Could not make relative path")
 		}
 
-		rID := pm.AddResource(&rsrc)
-		ids = append(ids, rID)
+		// skip existing resources
+		exists := pm.GetResourceByPath(path)
+		if exists == nil {
+			rsrc := model.Resource{
+				Type: model.ResourceFile,
+				Path: path,
+				Pos:  model.ResourcePos{X: rndm.Float64()*3000 - 1500, Y: rndm.Float64()*3000 - 1500, Z: 5},
+			}
+
+			rID := pm.AddResource(&rsrc)
+			ids = append(ids, rID)
+		}
 	}
+	pm.Write()
+
 	writeResources(w, pm, ids)
 }
 
