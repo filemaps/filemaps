@@ -18,6 +18,7 @@ type MapFileDataV1 struct {
 	Description string      `json:"description"`
 	Exclude     []string    `json:"exclude"`
 	Resources   []*Resource `json:"resources"`
+	NewZone     *OpenZone2D `json:"newZone"`
 }
 
 // MapFileData struct
@@ -38,6 +39,7 @@ func NewMap(i MapInfo) *Map {
 			Title2:    i.Title,
 			Exclude:   make([]string, 0),
 			Resources: make([]*Resource, 0),
+			NewZone:   NewNewZone2D(),
 		},
 	}
 	return m

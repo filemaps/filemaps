@@ -44,8 +44,8 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 
 	type Item struct {
-		Path string            `json:"path"`
-		Pos  model.ResourcePos `json:"pos"`
+		Path string         `json:"path"`
+		Pos  model.Position `json:"pos"`
 	}
 	type JSONRequest struct {
 		Items []Item `json:"items"`
@@ -114,8 +114,8 @@ func UpdateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 
 	type ResourceData struct {
-		ID  model.ResourceID  `json:"id"`
-		Pos model.ResourcePos `json:"pos"`
+		ID  model.ResourceID `json:"id"`
+		Pos model.Position   `json:"pos"`
 	}
 	type JSONRequest struct {
 		Resources []ResourceData `json:"resources"`
@@ -185,6 +185,7 @@ func ScanResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 
 	files := scanner.Scan(jr.Path, pm.Base, jr.Exclude)
 	var ids []model.ResourceID
+	var rsrcs []*model.Resource
 	rndm := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for _, path := range files {
 		// convert absolute path to relative
@@ -199,16 +200,20 @@ func ScanResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 		// skip existing resources
 		exists := pm.GetResourceByPath(path)
 		if exists == nil {
+			// assign new position
 			rsrc := model.Resource{
 				Type: model.ResourceFile,
 				Path: path,
-				Pos:  model.ResourcePos{X: rndm.Float64()*3000 - 1500, Y: rndm.Float64()*3000 - 1500, Z: 5},
+				Pos:  model.Position{X: rndm.Float64()*3000 - 1500, Y: rndm.Float64()*3000 - 1500, Z: 5},
 			}
 
 			rID := pm.AddResource(&rsrc)
+
 			ids = append(ids, rID)
+			rsrcs = append(rsrcs, &rsrc)
 		}
 	}
+	pm.AssignPositions(rsrcs)
 	pm.Write()
 
 	writeResources(w, pm, ids)

@@ -154,6 +154,27 @@ func (p *ProxyMap) DeleteResource(resourceID ResourceID) {
 	p.Changed = true
 }
 
+func (p *ProxyMap) AssignPositions(resources []*Resource) {
+	p.Read()
+
+	x := p.NewZone.Pos.X
+	y := p.NewZone.Pos.Y
+	path := ""
+
+	for _, rsrc := range resources {
+		rsrc.Pos.X = x
+		rsrc.Pos.Y = y
+		rsrcPath := filepath.Dir(rsrc.Path)
+		if rsrcPath != path {
+			path = rsrcPath
+			x = p.NewZone.Pos.X
+			y -= 100
+		} else {
+			x += 200
+		}
+	}
+}
+
 // refreshResourceIdx refreshes resource index in var resourceIdx.
 // ResourceID -> Resources array pos
 func (p *ProxyMap) refreshResourceIdx() {

@@ -29,23 +29,12 @@ func (r ResourceType) String() string {
 	}
 }
 
-// ResourcePosV1 is the first version from ResourcePos struct
-type ResourcePosV1 struct {
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
-	Z float64 `json:"z"`
-}
-
-// ResourcePos defines resource position in 3D space.
-// Alias to the latest ResourcePos version
-type ResourcePos ResourcePosV1
-
 // ResourceV1 is the first version from Resource struct
 type ResourceV1 struct {
 	ResourceID ResourceID   `json:"id"`
 	Type       ResourceType `json:"type"`
 	Path       string       `json:"path"`
-	Pos        ResourcePos  `json:"pos"`
+	Pos        Position     `json:"pos"`
 }
 
 // Resource is alias to the latest Resource version
