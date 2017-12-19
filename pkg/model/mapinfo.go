@@ -27,7 +27,7 @@ func (slice MapInfos) Len() int {
 }
 
 func (slice MapInfos) Less(i, j int) bool {
-	return slice[i].Opened.Before(slice[j].Opened)
+	return slice[i].Opened.After(slice[j].Opened)
 }
 
 func (slice MapInfos) Swap(i, j int) {
