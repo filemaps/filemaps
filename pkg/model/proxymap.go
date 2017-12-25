@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/filemaps/filemaps/pkg/fileapp"
 )
@@ -140,6 +141,17 @@ func (p *ProxyMap) AddResource(r *Resource) ResourceID {
 	p.resourceIdx[r.ResourceID] = len(p.Resources) - 1
 	p.Changed = true
 	return r.ResourceID
+}
+
+// AssignResourceStyle assigns style for give resource.
+// By default style class is determined from file name extension.
+// Returns assigned style class.
+func (p *ProxyMap) AssignResourceStyle(r *Resource) string {
+	p.Read()
+	ext := filepath.Ext(r.Path)
+	r.Style.SClass = strings.Trim(ext, ".")
+	p.Changed = true
+	return r.Style.SClass
 }
 
 // DeleteResource deletes resource from map.

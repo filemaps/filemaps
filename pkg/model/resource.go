@@ -35,6 +35,7 @@ type ResourceV1 struct {
 	Type       ResourceType `json:"type"`
 	Path       string       `json:"path"`
 	Pos        Position     `json:"pos"`
+	Style      Style        `json:"style"`
 }
 
 // Resource is alias to the latest Resource version

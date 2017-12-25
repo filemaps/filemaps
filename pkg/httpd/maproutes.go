@@ -213,7 +213,11 @@ func writeMap(w http.ResponseWriter, pm *model.ProxyMap) {
 	if pm != nil {
 		pm.Read()
 		m := pm.Map
-		WriteJSON(w, m)
+
+		resp := make(map[string]interface{})
+		resp["fileMap"] = m
+		resp["defaultStyles"] = model.NewDefaultStyles()
+		WriteJSON(w, resp)
 	} else {
 		WriteJSONError(w, 404, "map not found")
 	}

@@ -80,6 +80,8 @@ func CreateResources(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		}
 
 		rID := pm.AddResource(&rsrc)
+		pm.AssignResourceStyle(&rsrc)
+
 		ids = append(ids, rID)
 	}
 	pm.Write()
@@ -208,6 +210,7 @@ func ScanResources(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 			}
 
 			rID := pm.AddResource(&rsrc)
+			pm.AssignResourceStyle(&rsrc)
 
 			ids = append(ids, rID)
 			rsrcs = append(rsrcs, &rsrc)
