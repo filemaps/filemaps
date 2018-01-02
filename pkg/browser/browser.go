@@ -8,6 +8,8 @@ package browser
 import (
 	"io/ioutil"
 	"path/filepath"
+	"sort"
+	"strings"
 )
 
 // ItemType defines type of Item.
@@ -26,6 +28,41 @@ type Item struct {
 	Path string   `json:"path"`
 	Size int      `json:"size"`
 	Type ItemType `json:"type"`
+}
+
+// Sorting technique using programmable sort criteria
+
+// By is the type of a "less" function that defines the ordering of its Item arguments.
+type By func(i1, i2 *Item) bool
+
+// Sort is a method on the function type, By, that sorts the argument slice according to the function.
+func (by By) Sort(items []Item) {
+	is := &itemSorter{
+		items: items,
+		by:    by, // The Sort method's receiver is the function (closure) that defines the sort order.
+	}
+	sort.Sort(is)
+}
+
+// itemSorter joins a By function and a slice of Items to be sorted.
+type itemSorter struct {
+	items []Item
+	by    func(i1, i2 *Item) bool
+}
+
+// Len is part of sort.Interface.
+func (s *itemSorter) Len() int {
+	return len(s.items)
+}
+
+// Swao is part of sort.Interface.
+func (s *itemSorter) Swap(i, j int) {
+	s.items[i], s.items[j] = s.items[j], s.items[i]
+}
+
+// Less is part of sort.Interface. It is implemented by calling the "by" closure in the sorter.
+func (s *itemSorter) Less(i, j int) bool {
+	return s.by(&s.items[i], &s.items[j])
 }
 
 // Dir is directory struct.
@@ -60,5 +97,12 @@ func ScanDir(path string) (Dir, error) {
 		}
 		d.Contents = append(d.Contents, i)
 	}
+
+	// sort d.Contents by name
+	name := func(i1, i2 *Item) bool {
+		return strings.ToLower(i1.Name) < strings.ToLower(i2.Name)
+	}
+	By(name).Sort(d.Contents)
+
 	return d, nil
 }
