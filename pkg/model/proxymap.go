@@ -180,7 +180,7 @@ func (p *ProxyMap) AssignPositions(resources []*Resource) {
 		if rsrcPath != path {
 			path = rsrcPath
 			x = p.NewZone.Pos.X
-			y -= 100
+			y -= 125
 		} else {
 			x += 200
 		}
