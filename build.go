@@ -28,7 +28,7 @@ import (
 const (
 	target       = "github.com/filemaps/filemaps/cmd/filemaps"
 	webuiPath    = "filemaps-webui/"
-	webuiVersion = "0.5.0"
+	webuiVersion = "0.6.0"
 )
 
 var tmpl = template.Must(template.New("assets").Parse(`package httpd
